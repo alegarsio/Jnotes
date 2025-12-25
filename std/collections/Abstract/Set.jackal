@@ -1,0 +1,32 @@
+/**
+ * std.collections.Abstract.Pair;
+ * @author Alegrarsio Gifta Lesmana
+ * Pair represents the basic function for data structure e.g., MAP, HASHMAP
+ * Pair is part of std.collection.Abstract interface
+ * Pair [ @param K Key @param V Value ] -> [K,V]
+**/
+interface Sets{
+
+    /**
+     * function Pair::set()
+     * set the [@param K, @param V] -> Pair[K,V]();
+     * @param K is for Key of the map {key <- : value}
+     * @param V is for Value {key : -> value} of the map @param K is like primary key for accessing the @param V 
+    **/
+    func set();
+
+
+    /**
+     * function Pair::get()
+     * @return V [@param V] of the item in Map
+     * @param K is for the key access
+    **/
+    func get();
+
+    /**
+     * function Pair::set()
+     * @return none
+     * represents the stream API function 
+    **/
+    func stream();
+}

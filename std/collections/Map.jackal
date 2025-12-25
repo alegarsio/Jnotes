@@ -1,0 +1,35 @@
+import std.collections.Abstract.Set;
+import std.stream;
+
+/** 
+ * @author Alegrarsio Gifta Lesmana
+ * Map[@param K @param V] 
+ * Map is Wrapper class for Jackal Dictionary object, privides a higher level 
+ * abstraction for dictionary operation, implementing 
+**/
+class Map<K,V> implements Sets{
+    
+    init(){
+        this.data = {}; 
+    }
+
+    @override
+    func set(key: K, val: V) {
+        this.data[key.toString()] = val;
+    } 
+
+    @override
+    func get(key: K) -> V {
+        return this.data[key.toString()];
+    }
+
+    func flush(){
+        return this.data;
+    }
+
+    func stream() {
+        return MapStream(this.data);
+    }
+    
+
+}

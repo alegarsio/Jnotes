@@ -1,0 +1,281 @@
+import std.Stream.Abstract.Streamable;
+import std.collections.Abstract.collection;
+import std.Stream.Tree.SerialTree;
+
+/**
+ * @author Alegrarsio gifta lesmana
+ * @class ArrayStream represents the array stream API 
+ * this library is the part of std/collections/Abstract
+**/
+class ArrayStream implements Streamable extends Collections { 
+    /**
+     * ArrayStream object use the array type constructor
+     * @return an array for the result
+     * @param data -> Array
+    **/ 
+  
+    init(data) {
+        this.data = data;
+    }
+
+    func predictProb(history, labels, k) {
+        let results = []
+        for (point in this.data) {
+            let prob = __knn_predictprob(point, history, labels, k)
+            results.push(prob)
+        }
+        this.data = results
+        return this
+    }
+
+    func confusionMatrix(key) {
+        return __confusion_matrix(this.data, key)
+    }
+
+    func split(ratio) {
+        return __split(this.data, ratio)
+    }
+
+    func transpose(){
+        this.data = native_transpose(this.data)
+        return this
+    }
+
+    func standardize() {
+        this.data = native_standardnize(this.data)
+        return this
+    }
+
+    func smooth(period) {
+        this.data = native_smooth(this.data, period)
+        return this
+    }
+
+    func correlate(otherArray) {
+        let score = native_correlate(this.data, otherArray)
+        return score
+    }
+
+    func normalize() {
+        this.data = __normalize(this.data)
+        return this
+    }
+
+    func evaluate(actualLabels) {
+        let score = __accuracy(this.data, actualLabels)
+        return score
+    }
+
+    func classify(history, labels, k) {
+        let results = []
+        for (point in this.data) {
+           
+            let label = __knn(point, history, labels, k)
+            results.push(label)
+        }
+        this.data = results
+        return this
+    }
+    
+    func mean() {
+        return __array_mean(this.data);
+    }
+
+    func getTrend() {
+        let model = predicts(this.data[0], this.data[1])
+        let m = model[0]
+        let c = model[1]
+        
+        let trend = []
+        for (i in this.data[0]) {
+            trend.push((m * i) + c)
+        }
+        
+        this.data.push(trend)
+        return this
+    }
+
+     /**
+     * sorted is a higher order function to sort the elements in the array
+     * @return Map
+     * @param callback 
+    **/
+    func partition(callback) {
+        let result = {"true": [], "false": []};
+        for (i in this.data) {
+            if (callback(i)) {
+                result["true"].push(i);
+            } else {
+                result["false"].push(i);
+            }
+        }
+        return result;
+    }
+
+    // func toTree(){
+    //     return TreeStream(this.data);
+    // }
+
+    func countFrequency() {
+        let freq = {};
+        
+        for (i in this.data) {
+            if (freq[i] == nil) {
+                freq[i] = 1;
+            } else {
+                freq[i] = freq[i] + 1;
+            }
+        }
+        
+        return freq;
+    }
+
+    func groupBy(callback) {
+        let groups = {}; 
+        
+        for (i in this.data) {
+            let key = callback(i);
+            
+            let keyStr = key.toString(); 
+            
+            if (groups[keyStr] == nil) {
+                groups[keyStr] = [];
+            }
+            
+            groups[keyStr].push(i);
+        }
+        
+        return groups;
+}
+
+    func max() {
+        if (this.data.length() == 0) {
+            return nil;
+        }
+
+        let maxValue = this.data[0];
+
+        for (i in this.data) {
+            if (i > maxValue) {
+                maxValue = i;
+            }
+        }
+
+        return maxValue;
+    }
+
+    func mean() {
+        if (this.data.length() == 0) {
+            return 0;
+        }
+
+        let total = 0;
+        let count = 0;
+
+        for (i in this.data) {
+            total = total + i;
+            count = count + 1;
+        }
+
+        return total / count;
+    }
+
+    func shuffle(labels) {
+        return __sync_shuffle(this.data, labels)
+    }
+
+    func toTree() {
+        return this.inOrder();
+    }
+
+    func inOrder() {
+        this.data = __array_to_tree(this.data, "inorder");
+        return this;
+    }
+
+    func preOrder() {
+        this.data = __array_to_tree(this.data, "preorder");
+        return this;
+    }
+
+    func postOrder() {
+        this.data = __array_to_tree(this.data, "postorder");
+        return this;
+    }
+    func countBy(callback) {
+        let groups = this.groupBy(callback);
+        let counts = [];
+        for (key in groups) {
+            counts.push(groups[key].length());
+        }
+        return counts;
+    }
+    /**
+     * distinct() is the part of stream API reusable function 
+     * distinct use to remove duplication in the array elements
+     * @return none
+    **/
+    @override
+    func distinct(){
+        this.data =  __array_distinct(this.data);
+        return this;
+    }
+
+    /**
+     * @deprecated
+     * use filter() insted
+    **/
+    @deprecated
+    func Match(callback){
+        return __array_anyMatch(this.data,callback);
+    }
+
+    @override
+    func map(callback){
+        this.data = __array_map(this.data,callback);
+        return this;
+    }
+
+    @override
+    func filter(callback){
+        this.data = __array_filter(this.data,callback);
+        return this;
+    }
+
+    @override
+    func reduce(callback, initial) {
+        return __array_reduce(this.data, callback, initial);
+    }
+
+    @override
+    func collect() {
+        return this.data;
+    }
+
+    @override
+    func limit(n) {
+    
+        this.data = __array_limit(this.data, n);
+        return this; 
+    }
+
+    func skip(n) {
+        let result = [];
+        let len = this.data.length();
+        if (n >= len) { 
+            this.data = [];
+            return this;
+        }
+        
+        for (let i = n; i < len; i = i + 1) {
+            result.push(this.data[i]);
+        }
+        this.data = result;
+        return this;
+    }
+
+    
+}
+
+
+

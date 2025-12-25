@@ -1,0 +1,33 @@
+class Stack {
+    init() {
+        this.items = [];
+    }
+
+    func push(item) {
+        this.items.push(item);
+    }
+
+    func pop() {
+        if (this.isEmpty()) {
+            print "Error: Stack Is Empty!";
+            return nil;
+        }
+        return this.items.pop();
+    }
+
+    func peek() {
+        let count = this.items.length();
+        if (count == 0) {
+            return nil;
+        }
+        return this.items[count - 1];
+    }
+    
+    func size() {
+        return this.items.length();
+    }
+    
+    func isEmpty() {
+        return this.items.length() == 0;
+    }
+}

@@ -1,0 +1,36 @@
+
+class Queue {
+     init() {
+        this.items = [];
+    }
+
+    func enqueue(item) {
+        this.items.push(item);
+    }
+
+    func dequeue() {
+        if (this.isEmpty()) {
+            print ("Error: Queue is isEmpty!");
+            return nil;
+        }
+        
+        let firstItem = this.items[0];
+        this.items.remove(0);
+        return firstItem;
+    }
+
+    func front() {
+        if (this.isEmpty()) {
+            return nil;
+        }
+        return this.items[0];
+    }
+    
+    func size() {
+        return this.items.length();
+    }
+    
+    func isEmpty() {
+        return this.items.length() == 0;
+    }
+}

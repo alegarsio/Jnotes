@@ -1,0 +1,15 @@
+let data = [
+                [12,10],
+                [13,20],
+                [14,30]
+           ]
+let labels = [ 1, 1 ,0 ]
+
+let nowData = [[12,12] , [13,22]]
+
+let result = Array(nowData)
+            . classify(data,labels,1)
+            . map(func(x) {return x * 100})
+            . collect()
+      
+println(result)

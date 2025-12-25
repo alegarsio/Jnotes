@@ -1,0 +1,69 @@
+class Node {
+    init(value) {
+        this.value = value;
+        this.next = nil;
+    }
+}
+
+class List {
+     init() {
+        this.head = nil;
+        this.tail = nil;
+        this.count = 0;
+    }
+
+    func isEmpty() {
+        return this.head == nil;
+    }
+
+    func size() {
+        return this.count;
+    }
+
+    func append(value) {
+        let node = Node(value);
+        if (this.head == nil) {
+            this.head = node;
+            this.tail = node;
+        } else {
+            this.tail.next = node;
+            this.tail = node;
+        }
+        this.count++;
+    }
+
+    func prepend(value) {
+        let node = Node(value);
+        if (this.head == nil) {
+            this.head = node;
+            this.tail = node;
+        } else {
+            node.next = this.head;
+            this.head = node;
+        }
+        this.count++;
+    }
+
+    func removeFirst() {
+        if (this.head == nil) {
+            return nil;
+        }
+        let val = this.head.value;
+        this.head = this.head.next;
+        if (this.head == nil) {
+            this.tail = nil;
+        }
+        this.count--;
+        return val;
+    }
+
+    func printList() {
+        let current = this.head;
+      
+        while (current != nil) {
+            print current.value;
+            current = current.next;
+        }
+     
+    }
+}

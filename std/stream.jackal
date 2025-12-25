@@ -1,0 +1,12 @@
+import std.Stream.array.ArrayStream;
+import std.Stream.set.MapStream;
+import std.collections.Serial.Serialize;
+/**
+ * Forward decalration for Stream Api
+ * (c) Alegrarsio Gifta Lesmana
+**/
+class Map extends MapStream {}
+
+class Array extends ArrayStream {} 
+
+
