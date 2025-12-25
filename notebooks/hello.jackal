@@ -8,7 +8,8 @@ let labels = [ 1, 1 ,0 ]
 let nowData = [[12,12] , [13,22]]
 
 let result = Array(nowData)
-            . classify(data,labels,1)
+            . normalize()
+            . classify(data,labels,2)
             . map(func(x) {return x * 100})
             . collect()
       

@@ -1,6 +1,6 @@
 :root { 
     --bg: #ffffff; 
-    --side: #f5f5f7; 
+    --side: #ffffff; 
     --brd: rgba(0, 0, 0, 0.08); 
     --txt: #1d1d1f;
     --txt-muted: #86868b;
@@ -10,6 +10,106 @@
     --editor-bg: #ffffff;
 }
 
+.btn-terminal {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #1d1d1f;
+    color: #ffffff;
+    border: 1px solid #393b40;
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-terminal:hover {
+    background: #000000;
+    border-color: var(--accent);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    transform: translateY(-1px);
+}
+
+.term-icon {
+    color: #ffffff; /* Hijau terminal untuk simbol >_ */
+    font-weight: 700;
+    letter-spacing: -1px;
+}
+
+
+.btn-run {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--accent-gradient); /* Gradasi biru ke nila */
+    color: #ffffff;
+    border: none;
+    padding: 8px 18px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 12px rgba(0, 113, 227, 0.2);
+}
+
+.btn-run:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(0, 113, 227, 0.3);
+    filter: brightness(1.1);
+}
+
+.btn-run:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(0, 113, 227, 0.2);
+}
+
+.run-icon {
+    font-size: 10px; /* Ukuran simbol play yang kecil dan tajam */
+    margin-right: 2px;
+}
+
+
+.save-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+#save-status {
+    font-size: 11px;
+    color: var(--txt-muted);
+    font-weight: 500;
+    opacity: 0.7;
+    transition: opacity 0.3s ease;
+}
+
+.btn-save {
+    background: #ffffff;
+    color: var(--txt);
+    border: 1px solid var(--brd);
+    padding: 7px 16px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-save:hover {
+    background: #f5f5f7;
+    border-color: #d2d2d7;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.btn-save:active {
+    background: #e8e8ed;
+    transform: scale(0.98);
+}
 * { box-sizing: border-box; }
 
 body { 
@@ -20,28 +120,49 @@ body {
     overflow: hidden; 
     background: var(--bg); 
 }
-
 #sidebar { 
-    width: 260px; 
+    width: 220px; 
     background: var(--side); 
-    border-right: 1px solid var(--brd); 
+    border: 1px solid var(--brd); 
+    border-radius: var(--radius); 
     display: flex; 
     flex-direction: column; 
-    transition: 0.3s ease; 
+    transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+    flex-shrink: 0; /* Mencegah sidebar menyusut secara paksa */
 }
 
-#sidebar.closed { width: 0; opacity: 0; pointer-events: none; }
+#sidebar.closed { 
+    width: 0; 
+    margin-left: -10px; 
+    opacity: 0; 
+    pointer-events: none; 
+}
 
 .side-header { 
-    padding: 20px; 
-    font-size: 11px; 
+    padding: 20px 16px; 
+    font-size: 10px; /* Ukuran teks judul diperkecil */
     font-weight: 700; 
     color: var(--txt-muted); 
     text-transform: uppercase; 
+    letter-spacing: 1px;
     display: flex; 
     justify-content: space-between; 
-    align-items: center; 
+    align-items: center;
 }
+
+.btn-new {
+    background: #f5f5f7;
+    border: none;
+    color: var(--txt);
+    border-radius: 6px;
+    padding: 2px 8px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: 0.2s;
+}
+
+.btn-new:hover { background: #e8e8ed; }
 
 #file-list { flex: 1; overflow-y: auto; list-style: none; padding: 0 10px; margin: 0; }
 
@@ -64,7 +185,7 @@ body {
     box-shadow: 0 4px 12px rgba(0,0,0,0.05);
 }
 
-.file-icon { width: 16px; height: 16px; }
+.file-icon { width: 30px; height: 20px; }
 
 #main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
 
@@ -144,31 +265,58 @@ body {
 }
 
 #chart-area { flex: 1.2; background: #fbfbfd; padding: 20px; }
-
 #console-container { 
-    height: 160px; 
-    background: #1d1d1f; 
+    height: 180px; 
+    background: rgba(255, 255, 255, 0.8); 
+    backdrop-filter: blur(15px);
+    border-top: 1px solid var(--brd);
     display: flex; 
     flex-direction: column; 
-    transition: 0.3s ease; 
+    transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
 }
 
-#console-container.closed { height: 0; opacity: 0; }
+#console-container.closed { 
+    height: 0; 
+    opacity: 0; 
+    border-top: none;
+}
 
 .console-header { 
     padding: 8px 20px; 
     font-size: 10px; 
-    color: #86868b; 
-    background: #121212; 
+    font-weight: 700; 
+    color: var(--txt-muted); 
     display: flex; 
-    justify-content: space-between;
+    justify-content: space-between; 
+    align-items: center; 
+    letter-spacing: 1px;
+    background: transparent;
 }
 
 #console { 
     flex: 1; 
-    padding: 12px 20px; 
-    color: #fff; 
+    padding: 10px 20px 20px 20px; 
+    color: var(--txt); 
     font-family: 'JetBrains Mono', monospace; 
-    font-size: 12px; 
+    font-size: 13px; 
     overflow-y: auto; 
+    line-height: 1.6;
 }
+
+.btn-close-terminal {
+    background: transparent;
+    border: none;
+    color: var(--txt-muted);
+    cursor: pointer;
+    font-size: 14px;
+    padding: 4px;
+    border-radius: 4px;
+    transition: 0.2s;
+}
+
+.btn-close-terminal:hover {
+    background: rgba(0,0,0,0.05);
+    color: #ff3b30;
+}
+
