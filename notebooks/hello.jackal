@@ -1,15 +1,6 @@
-let data = [
-                [12,10],
-                [13,20],
-                [14,30]
-           ]
-let labels = [ 1, 1 ,0 ]
-
-let nowData = [ [12,12] , [13,22]]
-
-let result = Array(nowData)
-            . normalize()
-            . classify(data,labels,2)
+let data = [ 12000, 13000, 16200 , 25000 ,19000 , 18200]
+let result = Array(data)
+            . smooth(3)
             . collect()
-      
+        
 println(result)

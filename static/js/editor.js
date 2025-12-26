@@ -1,203 +1,146 @@
-const editor = document.getElementById('code-editor');
-const lineNumbers = document.getElementById('line-numbers');
 const consoleBox = document.getElementById('console');
 const filenameInput = document.getElementById('filename-input');
 const sidebar = document.getElementById('sidebar');
 const terminal = document.getElementById('console-container');
 const saveStatus = document.getElementById('save-status');
-let currentActiveFile = null;
 
 let myChart = null;
 let autosaveTimer;
-
 let currentRawData = [];
+let openFiles = { top: [], bottom: [] };
+let activeFile = { top: null, bottom: null };
+let currentActiveFile = null;
 
 async function initApp() {
     await refreshFileList();
     const lastFile = localStorage.getItem('lastOpenedFile');
     if (lastFile) {
-        loadFile(lastFile);
-    }
-}
-
-function updateLineNumbers() {
-    const lines = editor.value.split('\n').length;
-    let numberString = '';
-    for (let i = 1; i <= lines; i++) {
-        numberString += i + '<br>';
-    }
-    lineNumbers.innerHTML = numberString;
-}
-function renderTable(chartData) {
-    const wrapper = document.getElementById('dynamic-table-wrapper');
-    currentRawData = chartData;
-
-    if (!Array.isArray(chartData) || chartData.length === 0) {
-        wrapper.innerHTML = '<p class="empty-msg">No data available to preview</p>';
-        return;
-    }
-
-    let tableHTML = '<table><thead><tr><th>Index</th>';
-    const isMulti = Array.isArray(chartData[0]);
-
-    if (isMulti) {
-        chartData.forEach((_, i) => tableHTML += `<th>Series ${i + 1}</th>`);
-    } else {
-        tableHTML += '<th>Value</th>';
-    }
-    tableHTML += '</tr></thead><tbody>';
-
-    const rowCount = isMulti ? chartData[0].length : chartData.length;
-    for (let r = 0; r < rowCount; r++) {
-        tableHTML += `<tr><td><span style="color:#86868b">#</span> ${r}</td>`;
-        if (isMulti) {
-            chartData.forEach(series => {
-                const val = series[r] !== undefined ? series[r] : '-';
-                tableHTML += `<td>${val}</td>`;
-            });
-        } else {
-            tableHTML += `<td><b>${chartData[r]}</b></td>`;
-        }
-        tableHTML += '</tr>';
-    }
-
-    tableHTML += '</tbody></table>';
-    wrapper.innerHTML = tableHTML;
-}
-
-function exportToCSV() {
-    if (currentRawData.length === 0) return;
-    
-    let csvContent = "data:text/csv;charset=utf-8,Index,Value\n";
-    currentRawData.forEach((val, idx) => {
-        csvContent += `${idx},${val}\n`;
-    });
-
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "notebook_data.csv");
-    document.body.appendChild(link);
-    link.click();
-}
-editor.addEventListener('input', () => {
-    updateLineNumbers();
-    clearTimeout(autosaveTimer);
-    autosaveTimer = setTimeout(() => {
-        saveFile(true);
-    }, 1500);
-});
-
-editor.addEventListener('scroll', () => {
-    lineNumbers.scrollTop = editor.scrollTop;
-});
-
-function toggleSidebar() { 
-    sidebar.classList.toggle('closed'); 
-    setTimeout(() => myChart && myChart.resize(), 350); 
-}
-
-function toggleTerminal() { 
-    terminal.classList.toggle('closed'); 
-    setTimeout(() => myChart && myChart.resize(), 350); 
-}
-
-editor.addEventListener('keydown', e => {
-    if (e.key === 'Tab') {
-        e.preventDefault();
-        const start = editor.selectionStart;
-        editor.value = editor.value.substring(0, start) + "    " + editor.value.substring(editor.selectionEnd);
-        editor.selectionStart = editor.selectionEnd = start + 4;
-        updateLineNumbers();
-    }
-
-    if (e.key === 'Enter') {
-        e.preventDefault();
-        const start = editor.selectionStart;
-        const textBefore = editor.value.substring(0, start);
-        const lines = textBefore.split('\n');
-        const currentLine = lines[lines.length - 1];
-        const indent = currentLine.match(/^\s*/)[0];
-        const textAfter = editor.value.substring(editor.selectionEnd);
-        
-        editor.value = textBefore + '\n' + indent + textAfter;
-        editor.selectionStart = editor.selectionEnd = start + 1 + indent.length;
-        updateLineNumbers();
-    }
-});
-async function deleteFilePrompt() {
-    if (!currentActiveFile) return;
-    
-    if (confirm(`Apakah Anda yakin ingin menghapus ${currentActiveFile}?`)) {
-        const res = await fetch('/delete_file', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ filename: currentActiveFile })
-        });
-        
-        if (res.ok) {
-            currentActiveFile = null;
-            document.getElementById('file-ops').style.display = 'none';
-            newFile(); 
-            refreshFileList();
-            consoleBox.innerText = "[System] File didelete.";
-        }
-    }
-}
-
-async function renameFilePrompt() {
-    if (!currentActiveFile) return;
-    
-    const newName = prompt("Masukkan nama baru:", currentActiveFile);
-    if (newName && newName !== currentActiveFile) {
-        const res = await fetch('/rename_file', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ 
-                old_name: currentActiveFile, 
-                new_name: newName 
-            })
-        });
-        
-        if (res.ok) {
-            refreshFileList();
-            consoleBox.innerText = `[System] File diubah menjadi ${newName}`;
-        }
+        await loadFileToPane(lastFile, 'top');
     }
 }
 
 async function refreshFileList() {
     const res = await fetch('/list_files');
+    if (!res.ok) return;
     const files = await res.json();
     const list = document.getElementById('file-list');
     list.innerHTML = '';
     
     files.forEach(file => {
         const li = document.createElement('li');
-        li.textContent = file;
-        li.onclick = () => {
-            document.querySelectorAll('#file-list li').forEach(el => el.classList.remove('active-file'));
-            li.classList.add('active-file');
-            currentActiveFile = file; // Simpan file yang sedang aktif
-            document.getElementById('file-ops').style.display = 'block'; // Tampilkan menu ops
-            loadFile(file);
-        };
+        li.innerHTML = `
+            <img src="/static/icon.png" class="file-icon"> 
+            <span class="file-name-text">${file}</span>
+            <div class="pane-selectors">
+                <button onclick="event.stopPropagation(); loadFileToPane('${file}', 'top')" title="Open Top">↑</button>
+                <button onclick="event.stopPropagation(); loadFileToPane('${file}', 'bottom')" title="Open Bottom">↓</button>
+            </div>
+        `;
+        li.onclick = () => loadFileToPane(file, 'top');
         list.appendChild(li);
     });
 }
 
-async function saveFile(isAutosave = false) {
-    const filename = filenameInput.value || 'untitled.jackal';
-    if (saveStatus) saveStatus.innerText = "Saving...";
+async function loadFileToPane(filename, pane) {
+    const res = await fetch(`/load_file/${filename}`);
+    if (!res.ok) return;
+    const data = await res.json();
     
+    if (!openFiles[pane].includes(filename)) {
+        openFiles[pane].push(filename);
+    }
+    
+    activeFile[pane] = filename;
+    currentActiveFile = filename;
+    
+    const editorElem = document.getElementById(`code-editor-${pane}`);
+    if (editorElem) {
+        editorElem.value = data.content;
+        filenameInput.value = filename;
+        localStorage.setItem('lastOpenedFile', filename);
+        renderTabs(pane);
+        updateLineNumbers(pane);
+    }
+}
+
+function renderTabs(pane) {
+    const tabBar = document.getElementById(`tab-bar-${pane}`);
+    if (!tabBar) return;
+    tabBar.innerHTML = '';
+    
+    openFiles[pane].forEach(file => {
+        const tab = document.createElement('div');
+        tab.className = `tab ${activeFile[pane] === file ? 'active' : ''}`;
+        tab.innerHTML = `
+            <span onclick="switchTab('${file}', '${pane}')">${file}</span>
+            <span class="btn-close-tab" onclick="closeTab(event, '${file}', '${pane}')">×</span>
+        `;
+        tabBar.appendChild(tab);
+    });
+}
+
+function switchTab(filename, pane) {
+    loadFileToPane(filename, pane);
+}
+
+function closeTab(event, filename, pane) {
+    event.stopPropagation();
+    
+    openFiles[pane] = openFiles[pane].filter(f => f !== filename);
+    
+    if (activeFile[pane] === filename) {
+        activeFile[pane] = openFiles[pane][0] || null;
+        const editorElem = document.getElementById(`code-editor-${pane}`);
+        
+        if (activeFile[pane]) {
+            loadFileToPane(activeFile[pane], pane);
+        } else {
+            if (editorElem) {
+                editorElem.value = '';
+                updateLineNumbers(pane);
+            }
+        }
+    }
+    
+    renderTabs(pane);
+}
+function updateLineNumbers(pane) {
+    const editor = document.getElementById(`code-editor-${pane}`);
+    const lineBox = document.getElementById(`line-numbers-${pane}`);
+    if (!editor || !lineBox) return;
+    const lines = editor.value.split('\n').length;
+    let numStr = '';
+    for (let i = 1; i <= lines; i++) numStr += i + '<br>';
+    lineBox.innerHTML = numStr;
+}
+
+function syncScroll(pane) {
+    const editor = document.getElementById(`code-editor-${pane}`);
+    const lines = document.getElementById(`line-numbers-${pane}`);
+    if (editor && lines) lines.scrollTop = editor.scrollTop;
+}
+
+function handleInput(pane) {
+    updateLineNumbers(pane);
+    clearTimeout(autosaveTimer);
+    autosaveTimer = setTimeout(() => {
+        saveFile(true, pane);
+    }, 1500);
+}
+
+async function saveFile(isAutosave = false, pane = 'top') {
+    const editorElem = document.getElementById(`code-editor-${pane}`);
+    const filename = activeFile[pane] || filenameInput.value || 'untitled.jackal';
+    if (!editorElem) return;
+
+    if (saveStatus) saveStatus.innerText = "Saving...";
     await fetch('/save_file', { 
         method: 'POST', 
         headers: {'Content-Type': 'application/json'}, 
-        body: JSON.stringify({ filename, content: editor.value }) 
+        body: JSON.stringify({ filename, content: editorElem.value }) 
     });
     
     localStorage.setItem('lastOpenedFile', filename);
-    
     setTimeout(() => {
         if (saveStatus) saveStatus.innerText = "All changes saved";
     }, 500);
@@ -208,40 +151,105 @@ async function saveFile(isAutosave = false) {
     }
 }
 
-async function loadFile(name) {
-    const res = await fetch(`/load_file/${name}`);
-    if (res.ok) {
-        const data = await res.json();
-        editor.value = data.content;
-        filenameInput.value = name;
-        localStorage.setItem('lastOpenedFile', name);
-        updateLineNumbers();
-        document.querySelectorAll('#file-list li').forEach(el => {
-            if (el.textContent === name) el.classList.add('active-file');
-            else el.classList.remove('active-file');
-        });
-    }
-}
 async function runCode() {
+    const code = document.getElementById('code-editor-top').value;
     terminal.classList.remove('closed');
     consoleBox.innerText = "Executing...";
+    
     const res = await fetch('/run', { 
         method: 'POST', 
         headers: {'Content-Type': 'application/json'}, 
-        body: JSON.stringify({ code: editor.value }) 
+        body: JSON.stringify({ code: code }) 
     });
+    
     const data = await res.json();
     consoleBox.innerText = data.output;
     const match = data.output.match(/\[\[.*\]\]|\[.*\]/s);
     if (match) {
-        try { 
+        try {
             const parsedData = JSON.parse(match[0]);
             renderChart(parsedData);
             renderTable(parsedData);
-        } catch(e) { 
-            consoleBox.innerText += "\n[Error] Chart parsing failed."; 
+        } catch(e) {
+            consoleBox.innerText += "\n[Error] Data parsing failed.";
         }
     }
+}
+
+async function deleteFilePrompt() {
+    if (!currentActiveFile) return;
+    if (confirm(`Apakah Anda yakin ingin menghapus ${currentActiveFile}?`)) {
+        const res = await fetch('/delete_file', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ filename: currentActiveFile })
+        });
+        if (res.ok) {
+            openFiles.top = openFiles.top.filter(f => f !== currentActiveFile);
+            openFiles.bottom = openFiles.bottom.filter(f => f !== currentActiveFile);
+            currentActiveFile = null;
+            newFile(); 
+            refreshFileList();
+            renderTabs('top');
+            renderTabs('bottom');
+        }
+    }
+}
+
+async function renameFilePrompt() {
+    if (!currentActiveFile) return;
+    const newName = prompt("Masukkan nama baru:", currentActiveFile);
+    if (newName && newName !== currentActiveFile) {
+        const res = await fetch('/rename_file', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ old_name: currentActiveFile, new_name: newName })
+        });
+        if (res.ok) {
+            refreshFileList();
+        }
+    }
+}
+
+function renderTable(chartData) {
+    const wrapper = document.getElementById('dynamic-table-wrapper');
+    currentRawData = chartData;
+    if (!Array.isArray(chartData) || chartData.length === 0) {
+        wrapper.innerHTML = '<p class="empty-msg">No data processed</p>';
+        return;
+    }
+    let tableHTML = '<table><thead><tr><th>Index</th>';
+    const isMulti = Array.isArray(chartData[0]);
+    if (isMulti) {
+        chartData.forEach((_, i) => tableHTML += `<th>Series ${i + 1}</th>`);
+    } else {
+        tableHTML += '<th>Value</th>';
+    }
+    tableHTML += '</tr></thead><tbody>';
+    const rowCount = isMulti ? chartData[0].length : chartData.length;
+    for (let r = 0; r < rowCount; r++) {
+        tableHTML += `<tr><td># ${r}</td>`;
+        if (isMulti) {
+            chartData.forEach(series => tableHTML += `<td>${series[r] !== undefined ? series[r] : '-'}</td>`);
+        } else {
+            tableHTML += `<td><b>${chartData[r]}</b></td>`;
+        }
+        tableHTML += '</tr>';
+    }
+    tableHTML += '</tbody></table>';
+    wrapper.innerHTML = tableHTML;
+}
+
+function exportToCSV() {
+    if (currentRawData.length === 0) return;
+    let csvContent = "data:text/csv;charset=utf-8,Index,Value\n";
+    currentRawData.forEach((val, idx) => { csvContent += `${idx},${val}\n`; });
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "data.csv");
+    document.body.appendChild(link);
+    link.click();
 }
 
 function renderChart(chartData) {
@@ -257,35 +265,31 @@ function renderChart(chartData) {
 
     if (isMulti) {
         chartData.forEach((data, i) => {
-            if (Array.isArray(data) && data.length > 0) {
-                series.push({
-                    name: `Series ${i + 1}`,
-                    type: (type === 'area' || type === 'line') ? 'line' : type,
-                    data: data,
-                    smooth: true,
-                    showSymbol: false,
-                    emphasis: { focus: 'series', lineStyle: { width: 4 } },
-                    itemStyle: { color: colors[i % colors.length] },
-                    areaStyle: type === 'area' ? {
-                        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                            { offset: 0, color: colors[i % colors.length] + '55' },
-                            { offset: 1, color: colors[i % colors.length] + '00' }
-                        ])
-                    } : null
-                });
-                if (data.length > xAxisData.length) {
-                    xAxisData = Array.from({length: data.length}, (_, k) => k);
-                }
-            }
+            series.push({
+                name: `Series ${i + 1}`,
+                type: (type === 'area' || type === 'line') ? 'line' : type,
+                data: data,
+                smooth: true,
+                showSymbol: false,
+                emphasis: { focus: 'series', lineStyle: { width: 4 } },
+                itemStyle: { color: colors[i % colors.length] },
+                areaStyle: type === 'area' ? {
+                    color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                        { offset: 0, color: colors[i % colors.length] + '55' },
+                        { offset: 1, color: colors[i % colors.length] + '00' }
+                    ])
+                } : null
+            });
+            if (data.length > xAxisData.length) xAxisData = Array.from({length: data.length}, (_, k) => k);
         });
     } else {
         series.push({
-            name: 'Analytics',
+            name: 'Analysis Result',
             type: (type === 'area' || type === 'line') ? 'line' : type,
             data: chartData,
             smooth: true,
             symbol: 'circle',
-            symbolSize: 6,
+            symbolSize: 8,
             itemStyle: { color: '#0071e3' },
             areaStyle: type === 'area' ? {
                 color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
@@ -302,16 +306,17 @@ function renderChart(chartData) {
         backgroundColor: 'transparent',
         tooltip: { 
             trigger: 'axis',
-            backgroundColor: 'rgba(255, 255, 255, 0.96)',
+            backgroundColor: 'rgba(255, 255, 255, 0.98)',
             borderWidth: 0,
             shadowBlur: 15,
             shadowColor: 'rgba(0,0,0,0.1)',
             axisPointer: { type: 'cross', label: { backgroundColor: '#0071e3' } }
         },
         toolbox: {
-            right: 20, top: 0,
+            right: 20, 
+            top: 0,
             feature: {
-                dataZoom: { yAxisIndex: 'none', title: { zoom: 'Zoom', back: 'Reset' } },
+                dataZoom: { yAxisIndex: 'none', title: { zoom: 'Zoom Area', back: 'Reset Zoom' } },
                 magicType: { type: ['line', 'bar'], title: { line: 'Line', bar: 'Bar' } },
                 restore: { title: 'Restore' },
                 saveAsImage: { title: 'Export PNG' }
@@ -320,26 +325,48 @@ function renderChart(chartData) {
         dataZoom: [
             { type: 'inside', start: 0, end: 100 },
             { 
-                type: 'slider', start: 0, end: 100, bottom: 10, height: 20,
-                borderColor: 'transparent', fillerColor: 'rgba(0, 113, 227, 0.1)', handleStyle: { color: '#0071e3' }
+                type: 'slider', 
+                start: 0, 
+                end: 100, 
+                bottom: 10, 
+                height: 20,
+                borderColor: 'transparent', 
+                fillerColor: 'rgba(0, 113, 227, 0.1)', 
+                handleStyle: { color: '#0071e3' } 
             }
         ],
         legend: { show: series.length > 1, bottom: 40, textStyle: { color: '#86868b' } },
         grid: { top: '15%', left: '5%', right: '5%', bottom: '20%', containLabel: true },
-        xAxis: { type: 'category', data: xAxisData, axisLine: { lineStyle: { color: '#d2d2d7' } }, axisLabel: { color: '#86868b' }, boundaryGap: false },
-        yAxis: { type: 'value', scale: true, splitLine: { lineStyle: { color: '#f5f5f7', type: 'dashed' } }, axisLabel: { color: '#86868b' } },
+        xAxis: { 
+            type: 'category', 
+            data: xAxisData, 
+            axisLine: { lineStyle: { color: '#d2d2d7' } }, 
+            axisLabel: { color: '#86868b' }, 
+            boundaryGap: type === 'bar' 
+        },
+        yAxis: { 
+            type: 'value', 
+            scale: true, 
+            splitLine: { lineStyle: { color: '#f5f5f7', type: 'dashed' } }, 
+            axisLabel: { color: '#86868b' } 
+        },
         series: series
     };
     myChart.setOption(option, true);
 }
 
 function newFile() { 
-    editor.value = ''; 
+    const pane = 'top';
+    const editorElem = document.getElementById(`code-editor-${pane}`);
+    if (editorElem) editorElem.value = ''; 
     filenameInput.value = ''; 
     localStorage.removeItem('lastOpenedFile');
-    updateLineNumbers();
+    updateLineNumbers(pane);
     if (myChart) myChart.clear();
 }
+
+function toggleSidebar() { sidebar.classList.toggle('closed'); setTimeout(() => myChart && myChart.resize(), 350); }
+function toggleTerminal() { terminal.classList.toggle('closed'); setTimeout(() => myChart && myChart.resize(), 350); }
 
 initApp();
 window.addEventListener('resize', () => myChart && myChart.resize());

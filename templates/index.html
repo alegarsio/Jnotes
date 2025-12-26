@@ -6,9 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JNote — Jackal Notebook</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.4.3/echarts.min.js"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
@@ -21,7 +19,7 @@
             <button class="btn-new" onclick="newFile()">+</button>
         </div>
         <ul id="file-list"></ul>
-        <div class="file-ops" id="file-ops" style="display:none; padding: 10px; border-top: 1px solid #eee;">
+        <div class="file-ops" id="file-ops" style="display:none; padding: 10px; border-top: 1px solid rgba(0,0,0,0.05);">
             <button onclick="renameFilePrompt()" class="btn-minimal">Rename</button>
             <button onclick="deleteFilePrompt()" class="btn-minimal" style="color: #ff4d4f;">Delete</button>
         </div>
@@ -29,7 +27,7 @@
 
     <main id="main">
         <header class="toolbar">
-            <button class="btn-toggle" onclick="toggleSidebar()">☰</button>
+            <button class="btn-minimal" onclick="toggleSidebar()">☰</button>
             <input type="text" id="filename-input" placeholder="untitled.jackal">
             <select id="chart-type">
                 <option value="line">Line Graph</option>
@@ -37,7 +35,7 @@
                 <option value="bar">Bar Chart</option>
                 <option value="pie">Pie Chart</option>
             </select>
-            <div class="spacer"></div>
+            <div style="flex: 1;"></div>
             <div class="save-container">
                 <span id="save-status">All changes saved</span>
                 <button class="btn-save" onclick="saveFile()">Save</button>
@@ -54,23 +52,37 @@
 
         <section id="workspace">
             <div id="editor-container">
-                <div class="editor-label">Editor</div>
-                <div class="editor-wrapper">
-                    <div id="line-numbers">1</div>
-                    <textarea id="code-editor" spellcheck="false" placeholder="// Write your code here..."></textarea>
+                <div class="editor-pane" id="pane-top">
+                    <div class="tab-bar" id="tab-bar-top"></div>
+                    <div class="editor-wrapper">
+                        <div id="line-numbers-top" class="line-numbers">1</div>
+                        <textarea id="code-editor-top" class="main-editor" spellcheck="false"
+                            placeholder="// Top Pane..." oninput="handleInput('top')"
+                            onscroll="syncScroll('top')"></textarea>
+                    </div>
+                </div>
+
+                <div class="editor-pane" id="pane-bottom">
+                    <div class="tab-bar" id="tab-bar-bottom"></div>
+                    <div class="editor-wrapper">
+                        <div id="line-numbers-bottom" class="line-numbers">1</div>
+                        <textarea id="code-editor-bottom" class="main-editor" spellcheck="false"
+                            placeholder="// Bottom Pane..." oninput="handleInput('bottom')"
+                            onscroll="syncScroll('bottom')"></textarea>
+                    </div>
                 </div>
             </div>
+
             <div id="chart-area">
                 <div id="jackalChart" style="width: 100%; height: 100%;"></div>
             </div>
-
         </section>
 
         <footer id="console-container" class="closed">
             <div class="terminal-side">
                 <div class="console-header">
                     <span>TERMINAL</span>
-                    <button class="btn-close-terminal" onclick="toggleTerminal()">×</button>
+                    <button class="btn-close-terminal" onclick="toggleTerminal()" style="background:transparent; border:none; cursor:pointer; color:inherit;">×</button>
                 </div>
                 <div id="console">System ready...</div>
             </div>
