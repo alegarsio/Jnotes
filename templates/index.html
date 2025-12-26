@@ -11,6 +11,7 @@
         rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.4.3/echarts.min.js"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 </head>
 
 <body>
@@ -43,16 +44,46 @@
         </div>
     </div>
 
+    <div id="github-modal" class="modal-overlay">
+    <div class="modal-content github-theme">
+        <div class="modal-header">
+            <i class="fa-brands fa-github" style="font-size: 24px; margin-bottom: 10px;"></i>
+            <h3>GitHub Repository Sync</h3>
+        </div>
+        <div class="modal-body">
+            <div style="margin-bottom: 15px;">
+                <label class="gh-label">Repository (user/repo)</label>
+                <input type="text" id="gh-repo" class="gh-input" placeholder="e.g., username/my-notebook">
+            </div>
+            <div>
+                <label class="gh-label">Personal Access Token</label>
+                <input type="password" id="gh-token" class="gh-input" placeholder="ghp_your_token_here">
+            </div>
+            <p class="gh-note">
+                Tokens are stored locally in your browser. Ensure the token has 'repo' or 'contents' permissions.
+            </p>
+        </div>
+        <div class="modal-footer">
+            <button onclick="closeGithubModal()" class="btn-gh-secondary">Cancel</button>
+            <button onclick="syncWithGithub()" id="gh-push-btn" class="btn-gh-primary">Push to GitHub</button>
+        </div>
+    </div>
+</div>
     <main id="main">
         <header class="toolbar">
             <button class="btn-minimal" onclick="toggleSidebar()">☰</button>
             <input type="text" id="filename-input" placeholder="untitled.jackal">
+
             <select id="chart-type">
                 <option value="line">Line Graph</option>
                 <option value="area">Area Chart</option>
                 <option value="bar">Bar Chart</option>
                 <option value="pie">Pie Chart</option>
             </select>
+            <button class="btn-minimal" onclick="showGithubModal()" title="GitHub Sync">
+                <i class="fa-brands fa-github" style="font-size: 16px; margin-right: 5px;"></i>
+                <span>Sync GitHub</span>
+            </button>
             <div style="flex: 1;"></div>
             <div class="save-container">
                 <span id="save-status">All changes saved</span>
