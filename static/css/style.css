@@ -153,21 +153,33 @@ body {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
     flex-shrink: 0; 
 }
+#sidebar { 
+    width: 200px; 
+    background: rgba(255, 255, 255, 0.7); 
+    backdrop-filter: blur(20px) saturate(180%); 
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(0, 0, 0, 0.08); 
+    border-radius: var(--radius); 
+    display: flex; 
+    flex-direction: column; 
+    transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); 
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05); 
+    flex-shrink: 0;
+}
 
 #sidebar.closed { 
     width: 0; 
-    margin-left: -10px; 
     opacity: 0; 
-    pointer-events: none; 
+    transform: translateX(-20px);
 }
 
 .side-header { 
     padding: 20px 16px; 
-    font-size: 10px; 
-    font-weight: 700; 
+    font-size: 9px; 
+    font-weight: 800; 
     color: var(--txt-muted); 
     text-transform: uppercase; 
-    letter-spacing: 1px;
+    letter-spacing: 1.5px;
     display: flex; 
     justify-content: space-between; 
     align-items: center;
@@ -185,30 +197,54 @@ body {
 }
 
 .btn-new:hover { background: #e8e8ed; }
-
-#file-list { flex: 1; overflow-y: auto; list-style: none; padding: 0 10px; margin: 0; }
+#file-list { 
+    flex: 1; 
+    overflow-y: auto; 
+    list-style: none; 
+    padding: 0 10px 10px 10px; 
+    margin: 0; 
+}
 
 #file-list li { 
-    padding: 10px 12px; 
-    margin-bottom: 4px; 
+    padding: 8px 12px; 
+    margin-bottom: 2px; 
     cursor: pointer; 
-    font-size: 13px; 
+    font-size: 12px; 
+    font-weight: 500;
     border-radius: 8px; 
     color: #424245; 
     display: flex; 
     align-items: center; 
-    gap: 10px;
+    gap: 8px;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+}
+
+#file-list li:hover { 
+    background: rgba(0, 113, 227, 0.06); 
+    color: var(--accent);
+    transform: translateX(4px); 
 }
 
 .active-file { 
-    background: #fff !important; 
+    background: #ffffff !important; 
     color: var(--accent) !important; 
-    font-weight: 600; 
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    font-weight: 600 !important; 
+    border: 1px solid rgba(0, 113, 227, 0.1) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
-.file-icon { width: 30px; height: 20px; }
+.file-icon { 
+    width: 14px; 
+    height: 14px; 
+    opacity: 0.6;
+    filter: grayscale(1);
+}
 
+.active-file .file-icon, #file-list li:hover .file-icon {
+    filter: grayscale(0); 
+    opacity: 1;
+}
 #main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
 
 .toolbar { 

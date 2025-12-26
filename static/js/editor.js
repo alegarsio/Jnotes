@@ -33,7 +33,7 @@ function renderTable(chartData) {
     currentRawData = chartData;
 
     if (!Array.isArray(chartData) || chartData.length === 0) {
-        wrapper.innerHTML = '<p class="empty-msg">Invalid data format for table</p>';
+        wrapper.innerHTML = '<p class="empty-msg">No data available to preview</p>';
         return;
     }
 
@@ -41,7 +41,7 @@ function renderTable(chartData) {
     const isMulti = Array.isArray(chartData[0]);
 
     if (isMulti) {
-        chartData.forEach((_, i) => tableHTML += `<th>Value ${i + 1}</th>`);
+        chartData.forEach((_, i) => tableHTML += `<th>Series ${i + 1}</th>`);
     } else {
         tableHTML += '<th>Value</th>';
     }
@@ -49,11 +49,14 @@ function renderTable(chartData) {
 
     const rowCount = isMulti ? chartData[0].length : chartData.length;
     for (let r = 0; r < rowCount; r++) {
-        tableHTML += `<tr><td>${r}</td>`;
+        tableHTML += `<tr><td><span style="color:#86868b">#</span> ${r}</td>`;
         if (isMulti) {
-            chartData.forEach(series => tableHTML += `<td>${series[r] ?? '-'}</td>`);
+            chartData.forEach(series => {
+                const val = series[r] !== undefined ? series[r] : '-';
+                tableHTML += `<td>${val}</td>`;
+            });
         } else {
-            tableHTML += `<td>${chartData[r]}</td>`;
+            tableHTML += `<td><b>${chartData[r]}</b></td>`;
         }
         tableHTML += '</tr>';
     }

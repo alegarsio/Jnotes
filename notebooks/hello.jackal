@@ -5,12 +5,11 @@ let data = [
            ]
 let labels = [ 1, 1 ,0 ]
 
-let nowData = [[12,12] , [13,22]]
+let nowData = [ [12,12] , [13,22]]
 
 let result = Array(nowData)
             . normalize()
             . classify(data,labels,2)
-            . map(func(x) {return x * 100})
             . collect()
       
 println(result)
