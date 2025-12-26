@@ -2,24 +2,5 @@ let arr = Array([1921,2212,1221,1821,1421])
           . smooth(3)
           . collect()
       
-
 print(arr)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

@@ -65,54 +65,76 @@ body {
 }
 
 .btn-new:hover { background: #e8e8ed; }
-
 #file-list { 
     flex: 1; 
     overflow-y: auto; 
     list-style: none; 
-    padding: 0 10px 10px 10px; 
-    margin: 0; 
+    padding: 12px; 
+    margin: 0;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0,0,0,0.1) transparent;
+}
+
+#file-list::-webkit-scrollbar {
+    width: 4px;
+}
+
+#file-list::-webkit-scrollbar-thumb {
+    background: rgba(0,0,0,0.05);
+    border-radius: 10px;
 }
 
 #file-list li { 
-    padding: 8px 12px; 
-    margin-bottom: 2px; 
+    padding: 10px 12px; 
+    margin-bottom: 4px; 
     cursor: pointer; 
-    font-size: 12px; 
+    font-size: 13px; 
     font-weight: 500;
     border-radius: 8px; 
-    color: #424245; 
+    color: var(--txt-muted); 
     display: flex; 
     align-items: center; 
-    gap: 8px;
-    transition: all 0.2s ease;
+    gap: 10px;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     border: 1px solid transparent;
+    user-select: none;
 }
 
 #file-list li:hover { 
-    background: rgba(0, 113, 227, 0.06); 
+    background: rgba(0, 113, 227, 0.04); 
     color: var(--accent);
-    transform: translateX(4px); 
+    padding-left: 16px;
 }
 
 .active-file { 
     background: #ffffff !important; 
     color: var(--accent) !important; 
     font-weight: 600 !important; 
-    border: 1px solid rgba(0, 113, 227, 0.1) !important;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    border: 1px solid rgba(0, 113, 227, 0.12) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    transform: scale(1.02);
 }
 
 .file-icon { 
-    width: 14px; 
-    height: 14px; 
-    opacity: 0.6;
+    width: 16px; 
+    height: 16px; 
+    opacity: 0.5;
     filter: grayscale(1);
+    transition: all 0.2s ease;
 }
 
-.active-file .file-icon, #file-list li:hover .file-icon {
+.active-file .file-icon, 
+#file-list li:hover .file-icon {
     filter: grayscale(0); 
     opacity: 1;
+    transform: rotate(-5deg);
+}
+
+#file-list li span {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 #main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
