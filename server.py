@@ -40,6 +40,34 @@ def load_file(filename):
             return jsonify({"content": f.read()})
     return jsonify({"error": "Not found"}), 404
 
+@app.route('/delete_file', methods=['POST'])
+def delete_file():
+    data = request.json
+    filename = data.get('filename')
+    filepath = os.path.join(NOTEBOOK_DIR, filename)
+    
+    if os.path.exists(filepath):
+        os.remove(filepath)
+        return jsonify({"status": "success"})
+    return jsonify({"status": "error", "message": "File not found"}), 404
+
+@app.route('/rename_file', methods=['POST'])
+def rename_file():
+    data = request.json
+    old_name = data.get('old_name')
+    new_name = data.get('new_name')
+    
+    if not new_name.endswith('.jackal'):
+        new_name += '.jackal'
+        
+    old_path = os.path.join(NOTEBOOK_DIR, old_name)
+    new_path = os.path.join(NOTEBOOK_DIR, new_name)
+    
+    if os.path.exists(old_path):
+        os.rename(old_path, new_path)
+        return jsonify({"status": "success"})
+    return jsonify({"status": "error", "message": "File not found"}), 404
+
 @app.route('/run', methods=['POST'])
 def run_code():
     code = request.json.get('code')

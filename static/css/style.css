@@ -10,6 +10,28 @@
     --editor-bg: #ffffff;
 }
 
+.btn-minimal {
+    background: transparent;
+    border: none;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 5px 10px;
+    border-radius: 4px;
+    transition: 0.2s;
+    margin-right: 5px;
+}
+
+.btn-minimal:hover {
+    background: rgba(0,0,0,0.05);
+}
+
+#file-ops {
+    background: #fff;
+    display: flex;
+    justify-content: space-around;
+}
+
 .btn-terminal {
     display: flex;
     align-items: center;

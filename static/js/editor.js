@@ -5,9 +5,12 @@ const filenameInput = document.getElementById('filename-input');
 const sidebar = document.getElementById('sidebar');
 const terminal = document.getElementById('console-container');
 const saveStatus = document.getElementById('save-status');
+let currentActiveFile = null;
 
 let myChart = null;
 let autosaveTimer;
+
+
 
 async function initApp() {
     await refreshFileList();
@@ -71,22 +74,63 @@ editor.addEventListener('keydown', e => {
         updateLineNumbers();
     }
 });
+async function deleteFilePrompt() {
+    if (!currentActiveFile) return;
+    
+    if (confirm(`Apakah Anda yakin ingin menghapus ${currentActiveFile}?`)) {
+        const res = await fetch('/delete_file', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ filename: currentActiveFile })
+        });
+        
+        if (res.ok) {
+            currentActiveFile = null;
+            document.getElementById('file-ops').style.display = 'none';
+            newFile(); 
+            refreshFileList();
+            consoleBox.innerText = "[System] File didelete.";
+        }
+    }
+}
+
+async function renameFilePrompt() {
+    if (!currentActiveFile) return;
+    
+    const newName = prompt("Masukkan nama baru:", currentActiveFile);
+    if (newName && newName !== currentActiveFile) {
+        const res = await fetch('/rename_file', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ 
+                old_name: currentActiveFile, 
+                new_name: newName 
+            })
+        });
+        
+        if (res.ok) {
+            refreshFileList();
+            consoleBox.innerText = `[System] File diubah menjadi ${newName}`;
+        }
+    }
+}
 
 async function refreshFileList() {
     const res = await fetch('/list_files');
     const files = await res.json();
     const list = document.getElementById('file-list');
     list.innerHTML = '';
+    
     files.forEach(file => {
         const li = document.createElement('li');
-        const icon = document.createElement('img');
-        icon.src = "/static/icon.png";
-        icon.className = "file-icon";
-        const span = document.createElement('span');
-        span.textContent = file;
-        li.appendChild(icon);
-        li.appendChild(span);
-        li.onclick = () => loadFile(file);
+        li.textContent = file;
+        li.onclick = () => {
+            document.querySelectorAll('#file-list li').forEach(el => el.classList.remove('active-file'));
+            li.classList.add('active-file');
+            currentActiveFile = file; // Simpan file yang sedang aktif
+            document.getElementById('file-ops').style.display = 'block'; // Tampilkan menu ops
+            loadFile(file);
+        };
         list.appendChild(li);
     });
 }
