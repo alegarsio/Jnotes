@@ -56,34 +56,30 @@ function showGithubModal() {
 function closeGithubModal() {
     document.getElementById('github-modal').style.display = 'none';
 }
-
 async function syncWithGithub() {
     const repo = document.getElementById('gh-repo').value;
     const token = document.getElementById('gh-token').value;
-    const filename = activeFile.top;
     const content = document.getElementById('code-editor-top').value;
+    const filename = activeFile.top;
 
     if (!repo || !token || !filename) {
-        alert("Mohon isi Repo, Token, dan pastikan file sudah terbuka.");
+        alert("Missing information: Repository, Token, or Active File.");
         return;
     }
 
-    localStorage.setItem('gh_repo', repo);
-    localStorage.setItem('gh_token', token);
-
-    const syncBtn = document.querySelector('#github-modal .btn-primary');
-    syncBtn.innerText = "Syncing...";
-    syncBtn.disabled = true;
+    const btn = document.getElementById('gh-push-btn');
+    btn.innerText = "Syncing...";
+    btn.disabled = true;
 
     try {
-        const getFileRes = await fetch(`https://api.github.com/repos/${repo}/contents/${filename}`, {
+        const res = await fetch(`https://api.github.com/repos/${repo}/contents/${filename}`, {
             headers: { 'Authorization': `token ${token}` }
         });
 
         let sha = null;
-        if (getFileRes.ok) {
-            const fileData = await getFileRes.json();
-            sha = fileData.sha;
+        if (res.ok) {
+            const data = await res.json();
+            sha = data.sha;
         }
 
         const putRes = await fetch(`https://api.github.com/repos/${repo}/contents/${filename}`, {
@@ -93,25 +89,24 @@ async function syncWithGithub() {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                message: `Update ${filename} via JNote`,
+                message: `Sync ${filename} via JNote`,
                 content: btoa(unescape(encodeURIComponent(content))),
                 sha: sha
             })
         });
 
         if (putRes.ok) {
-            terminal.classList.remove('closed');
-            consoleBox.innerText = `[GitHub] Sukses: ${filename} telah di-push ke ${repo}.`;
+            consoleBox.innerHTML = `<span style="color:#58a6ff">[GitHub] Successfully synced ${filename} to ${repo}</span>`;
             closeGithubModal();
         } else {
-            const errData = await putRes.json();
-            alert("Error: " + errData.message);
+            const err = await putRes.json();
+            consoleBox.innerText = `[GitHub Error] ${err.message}`;
         }
-    } catch (error) {
-        alert("Gagal terhubung ke GitHub API.");
+    } catch (e) {
+        consoleBox.innerText = "[GitHub Error] Connection failed.";
     } finally {
-        syncBtn.innerText = "Push to GitHub";
-        syncBtn.disabled = false;
+        btn.innerText = "Push to GitHub";
+        btn.disabled = false;
     }
 }
 function showModal(title, defaultValue, onConfirm, isDelete = false) {
