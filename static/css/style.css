@@ -151,7 +151,7 @@ body {
     flex-direction: column; 
     transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
-    flex-shrink: 0; /* Mencegah sidebar menyusut secara paksa */
+    flex-shrink: 0; 
 }
 
 #sidebar.closed { 
@@ -163,7 +163,7 @@ body {
 
 .side-header { 
     padding: 20px 16px; 
-    font-size: 10px; /* Ukuran teks judul diperkecil */
+    font-size: 10px; 
     font-weight: 700; 
     color: var(--txt-muted); 
     text-transform: uppercase; 
@@ -276,7 +276,7 @@ body {
     padding: 20px; 
     font-family: 'JetBrains Mono', monospace; 
     font-size: 13px; 
-    line-height: 1.5; /* Harus sama dengan line-numbers */
+    line-height: 1.5; 
     border: none; 
     outline: none; 
     resize: none; 
@@ -287,58 +287,125 @@ body {
 }
 
 #chart-area { flex: 1.2; background: #fbfbfd; padding: 20px; }
+
+
 #console-container { 
-    height: 180px; 
-    background: rgba(255, 255, 255, 0.8); 
-    backdrop-filter: blur(15px);
+    height: 240px; 
+    background: rgba(255, 255, 255, 0.95); 
+    backdrop-filter: blur(20px);
     border-top: 1px solid var(--brd);
     display: flex; 
-    flex-direction: column; 
-    transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    position: relative;
+    transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.03);
+    overflow: hidden;
 }
 
 #console-container.closed { 
     height: 0; 
     opacity: 0; 
-    border-top: none;
+    transform: translateY(20px);
+}
+
+.terminal-side {
+    flex: 1.2; 
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid var(--brd);
+}
+
+.table-side {
+    flex: 0.8;
+    display: flex;
+    flex-direction: column;
+    background: rgba(250, 250, 252, 0.4);
 }
 
 .console-header { 
-    padding: 8px 20px; 
+    padding: 12px 20px; 
     font-size: 10px; 
     font-weight: 700; 
     color: var(--txt-muted); 
     display: flex; 
     justify-content: space-between; 
     align-items: center; 
-    letter-spacing: 1px;
-    background: transparent;
+    letter-spacing: 1.2px;
+    background: rgba(255, 255, 255, 0.5);
+    border-bottom: 1px solid rgba(0,0,0,0.03);
 }
 
 #console { 
     flex: 1; 
-    padding: 10px 20px 20px 20px; 
+    padding: 15px 20px; 
     color: var(--txt); 
     font-family: 'JetBrains Mono', monospace; 
-    font-size: 13px; 
+    font-size: 12.5px; 
     overflow-y: auto; 
     line-height: 1.6;
+    white-space: pre-wrap;
 }
 
-.btn-close-terminal {
-    background: transparent;
-    border: none;
+#dynamic-table-wrapper {
+    flex: 1;
+    overflow: auto;
+    padding: 0; 
+}
+
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+}
+
+table th {
+    text-align: left;
+    padding: 10px 20px;
+    background: #ffffff;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    border-bottom: 1px solid var(--brd);
     color: var(--txt-muted);
+    font-weight: 600;
+}
+
+table td {
+    padding: 10px 20px;
+    border-bottom: 1px solid rgba(0,0,0,0.03);
+    color: #424245;
+}
+
+table tr:last-child td {
+    border-bottom: none;
+}
+
+table tr:hover td {
+    background: rgba(0, 113, 227, 0.02);
+    color: var(--accent);
+}
+
+.btn-export {
+    background: #ffffff;
+    border: 1px solid var(--brd);
+    padding: 4px 12px;
+    border-radius: 6px;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--txt);
     cursor: pointer;
-    font-size: 14px;
-    padding: 4px;
-    border-radius: 4px;
-    transition: 0.2s;
+    transition: all 0.2s;
 }
 
-.btn-close-terminal:hover {
-    background: rgba(0,0,0,0.05);
-    color: #ff3b30;
+.btn-export:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    box-shadow: 0 2px 8px rgba(0, 113, 227, 0.1);
 }
 
+.empty-msg {
+    padding: 40px 20px;
+    text-align: center;
+    color: var(--txt-muted);
+    font-size: 12px;
+    font-style: italic;
+}

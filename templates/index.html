@@ -63,16 +63,27 @@
             <div id="chart-area">
                 <div id="jackalChart" style="width: 100%; height: 100%;"></div>
             </div>
+
         </section>
 
         <footer id="console-container" class="closed">
-            <div class="console-header">
-                <span>TERMINAL OUTPUT</span>
-                <button class="btn-close"
-                    style="background:none; border:none; color:inherit; cursor:pointer; font-size:16px;"
-                    onclick="toggleTerminal()">×</button>
+            <div class="terminal-side">
+                <div class="console-header">
+                    <span>TERMINAL</span>
+                    <button class="btn-close-terminal" onclick="toggleTerminal()">×</button>
+                </div>
+                <div id="console">System ready...</div>
             </div>
-            <div id="console">System ready...</div>
+
+            <div class="table-side">
+                <div class="console-header">
+                    <span>DATA PREVIEW</span>
+                    <button onclick="exportToCSV()" class="btn-export">Export CSV</button>
+                </div>
+                <div id="dynamic-table-wrapper">
+                    <p class="empty-msg">No data processed</p>
+                </div>
+            </div>
         </footer>
     </main>
 

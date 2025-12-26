@@ -10,7 +10,7 @@ let currentActiveFile = null;
 let myChart = null;
 let autosaveTimer;
 
-
+let currentRawData = [];
 
 async function initApp() {
     await refreshFileList();
@@ -28,7 +28,55 @@ function updateLineNumbers() {
     }
     lineNumbers.innerHTML = numberString;
 }
+function renderTable(chartData) {
+    const wrapper = document.getElementById('dynamic-table-wrapper');
+    currentRawData = chartData;
 
+    if (!Array.isArray(chartData) || chartData.length === 0) {
+        wrapper.innerHTML = '<p class="empty-msg">Invalid data format for table</p>';
+        return;
+    }
+
+    let tableHTML = '<table><thead><tr><th>Index</th>';
+    const isMulti = Array.isArray(chartData[0]);
+
+    if (isMulti) {
+        chartData.forEach((_, i) => tableHTML += `<th>Value ${i + 1}</th>`);
+    } else {
+        tableHTML += '<th>Value</th>';
+    }
+    tableHTML += '</tr></thead><tbody>';
+
+    const rowCount = isMulti ? chartData[0].length : chartData.length;
+    for (let r = 0; r < rowCount; r++) {
+        tableHTML += `<tr><td>${r}</td>`;
+        if (isMulti) {
+            chartData.forEach(series => tableHTML += `<td>${series[r] ?? '-'}</td>`);
+        } else {
+            tableHTML += `<td>${chartData[r]}</td>`;
+        }
+        tableHTML += '</tr>';
+    }
+
+    tableHTML += '</tbody></table>';
+    wrapper.innerHTML = tableHTML;
+}
+
+function exportToCSV() {
+    if (currentRawData.length === 0) return;
+    
+    let csvContent = "data:text/csv;charset=utf-8,Index,Value\n";
+    currentRawData.forEach((val, idx) => {
+        csvContent += `${idx},${val}\n`;
+    });
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "notebook_data.csv");
+    document.body.appendChild(link);
+    link.click();
+}
 editor.addEventListener('input', () => {
     updateLineNumbers();
     clearTimeout(autosaveTimer);
@@ -171,7 +219,6 @@ async function loadFile(name) {
         });
     }
 }
-
 async function runCode() {
     terminal.classList.remove('closed');
     consoleBox.innerText = "Executing...";
@@ -184,7 +231,13 @@ async function runCode() {
     consoleBox.innerText = data.output;
     const match = data.output.match(/\[\[.*\]\]|\[.*\]/s);
     if (match) {
-        try { renderChart(JSON.parse(match[0])); } catch(e) { consoleBox.innerText += "\n[Error] Chart parsing failed."; }
+        try { 
+            const parsedData = JSON.parse(match[0]);
+            renderChart(parsedData);
+            renderTable(parsedData);
+        } catch(e) { 
+            consoleBox.innerText += "\n[Error] Chart parsing failed."; 
+        }
     }
 }
 
