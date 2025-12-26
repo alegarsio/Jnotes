@@ -10,20 +10,35 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.4.3/echarts.min.js"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
-
 <body>
 
-    <aside id="sidebar">
-        <div class="side-header">
-            <span>Project Files</span>
-            <button class="btn-new" onclick="newFile()">+</button>
+  <aside id="sidebar">
+    <div class="side-header">
+        <span>Project Files</span>
+        <button class="btn-new" onclick="newFile()">+</button>
+    </div>
+    <ul id="file-list"></ul>
+    
+    <div id="file-ops">
+        <button onclick="renameFilePrompt()" class="btn-minimal">Rename</button>
+        <button onclick="deleteFilePrompt()" class="btn-minimal">Delete</button>
+    </div>
+</aside>
+
+
+    <div id="custom-modal" class="modal-overlay">
+    <div class="modal-content">
+        <h3 id="modal-title">Rename File</h3>
+        <div class="modal-body">
+            <input type="text" id="modal-input" spellcheck="false">
+            <p id="modal-msg"></p>
         </div>
-        <ul id="file-list"></ul>
-        <div class="file-ops" id="file-ops" style="display:none; padding: 10px; border-top: 1px solid rgba(0,0,0,0.05);">
-            <button onclick="renameFilePrompt()" class="btn-minimal">Rename</button>
-            <button onclick="deleteFilePrompt()" class="btn-minimal" style="color: #ff4d4f;">Delete</button>
+        <div class="modal-footer">
+            <button onclick="closeModal()" class="btn-secondary">Cancel</button>
+            <button id="modal-confirm-btn" class="btn-primary">Confirm</button>
         </div>
-    </aside>
+    </div>
+</div>
 
     <main id="main">
         <header class="toolbar">
@@ -40,6 +55,8 @@
                 <span id="save-status">All changes saved</span>
                 <button class="btn-save" onclick="saveFile()">Save</button>
             </div>
+
+            
             <button class="btn-run" onclick="runCode()">
                 <span class="run-icon">▶</span>
                 <span>Run Code</span>
@@ -62,15 +79,7 @@
                     </div>
                 </div>
 
-                <div class="editor-pane" id="pane-bottom">
-                    <div class="tab-bar" id="tab-bar-bottom"></div>
-                    <div class="editor-wrapper">
-                        <div id="line-numbers-bottom" class="line-numbers">1</div>
-                        <textarea id="code-editor-bottom" class="main-editor" spellcheck="false"
-                            placeholder="// Bottom Pane..." oninput="handleInput('bottom')"
-                            onscroll="syncScroll('bottom')"></textarea>
-                    </div>
-                </div>
+                
             </div>
 
             <div id="chart-area">

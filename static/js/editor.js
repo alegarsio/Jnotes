@@ -3,6 +3,11 @@ const filenameInput = document.getElementById('filename-input');
 const sidebar = document.getElementById('sidebar');
 const terminal = document.getElementById('console-container');
 const saveStatus = document.getElementById('save-status');
+const modal = document.getElementById('custom-modal');
+const modalInput = document.getElementById('modal-input');
+const modalTitle = document.getElementById('modal-title');
+const modalConfirmBtn = document.getElementById('modal-confirm-btn');
+
 
 let myChart = null;
 let autosaveTimer;
@@ -10,7 +15,70 @@ let currentRawData = [];
 let openFiles = { top: [], bottom: [] };
 let activeFile = { top: null, bottom: null };
 let currentActiveFile = null;
+function showModal(title, defaultValue, onConfirm, isDelete = false) {
+    modal.style.display = 'flex';
+    modalTitle.innerText = title;
+    modalInput.value = defaultValue;
+    modalInput.style.display = isDelete ? 'none' : 'block';
+    
+    modalConfirmBtn.onclick = () => {
+        onConfirm(modalInput.value);
+        closeModal();
+    };
+    
+    if (!isDelete) {
+        setTimeout(() => modalInput.focus(), 100);
+        modalInput.onkeydown = (e) => { if (e.key === 'Enter') modalConfirmBtn.click(); };
+    }
+}
 
+function closeModal() {
+    modal.style.display = 'none';
+}
+
+function deleteFilePrompt() {
+    if (!currentActiveFile) return;
+    showModal(`Delete '${currentActiveFile}'?`, "", () => {
+        executeDelete();
+    }, true);
+}
+
+async function executeDelete() {
+    const res = await fetch('/delete_file', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ filename: currentActiveFile })
+    });
+    if (res.ok) {
+        openFiles.top = openFiles.top.filter(f => f !== currentActiveFile);
+        activeFile.top = openFiles.top[0] || null;
+        if (!activeFile.top) document.getElementById('code-editor-top').value = '';
+        currentActiveFile = null;
+        document.getElementById('file-ops').style.display = 'none';
+        renderTabs('top');
+        refreshFileList();
+    }
+}
+
+function renameFilePrompt() {
+    if (!currentActiveFile) return;
+    const baseName = currentActiveFile.replace('.jackal', '');
+    showModal("Rename File", baseName, (newName) => {
+        executeRename(newName);
+    });
+}
+
+async function executeRename(newName) {
+    if (!newName) return;
+    const res = await fetch('/rename_file', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ old_name: currentActiveFile, new_name: newName })
+    });
+    if (res.ok) {
+        refreshFileList();
+    }
+}
 async function initApp() {
     await refreshFileList();
     const lastFile = localStorage.getItem('lastOpenedFile');
@@ -18,7 +86,6 @@ async function initApp() {
         await loadFileToPane(lastFile, 'top');
     }
 }
-
 async function refreshFileList() {
     const res = await fetch('/list_files');
     if (!res.ok) return;
@@ -28,19 +95,16 @@ async function refreshFileList() {
     
     files.forEach(file => {
         const li = document.createElement('li');
-        li.innerHTML = `
-            <img src="/static/icon.png" class="file-icon"> 
-            <span class="file-name-text">${file}</span>
-            <div class="pane-selectors">
-                <button onclick="event.stopPropagation(); loadFileToPane('${file}', 'top')" title="Open Top">↑</button>
-                <button onclick="event.stopPropagation(); loadFileToPane('${file}', 'bottom')" title="Open Bottom">↓</button>
-            </div>
-        `;
-        li.onclick = () => loadFileToPane(file, 'top');
+        li.innerHTML = `<img src="/static/icon.png" class="file-icon"> <span>${file}</span>`;
+        
+        li.onclick = () => {
+            currentActiveFile = file;
+            loadFileToPane(file, 'top');
+        };
+        
         list.appendChild(li);
     });
 }
-
 async function loadFileToPane(filename, pane) {
     const res = await fetch(`/load_file/${filename}`);
     if (!res.ok) return;
@@ -62,21 +126,45 @@ async function loadFileToPane(filename, pane) {
         updateLineNumbers(pane);
     }
 }
-
 function renderTabs(pane) {
-    const tabBar = document.getElementById(`tab-bar-${pane}`);
+    // Hanya jalankan logika tab jika pane adalah 'top'
+    if (pane !== 'top') return;
+
+    const tabBar = document.getElementById(`tab-bar-top`);
     if (!tabBar) return;
-    tabBar.innerHTML = '';
     
-    openFiles[pane].forEach(file => {
+    tabBar.innerHTML = '';
+    openFiles['top'].forEach(file => {
         const tab = document.createElement('div');
-        tab.className = `tab ${activeFile[pane] === file ? 'active' : ''}`;
+        tab.className = `tab ${activeFile['top'] === file ? 'active' : ''}`;
         tab.innerHTML = `
-            <span onclick="switchTab('${file}', '${pane}')">${file}</span>
-            <span class="btn-close-tab" onclick="closeTab(event, '${file}', '${pane}')">×</span>
+            <span onclick="switchTab('${file}', 'top')">${file}</span>
+            <span class="btn-close-tab" onclick="closeTab(event, '${file}', 'top')">×</span>
         `;
         tabBar.appendChild(tab);
     });
+}
+
+function closeTab(event, filename, pane) {
+    event.stopPropagation();
+    
+    openFiles[pane] = openFiles[pane].filter(f => f !== filename);
+    
+    if (activeFile[pane] === filename) {
+        activeFile[pane] = openFiles[pane][0] || null;
+        const editorElem = document.getElementById(`code-editor-${pane}`);
+        
+        if (activeFile[pane]) {
+            loadFileToPane(activeFile[pane], pane);
+        } else {
+            if (editorElem) {
+                editorElem.value = '';
+                updateLineNumbers(pane);
+            }
+        }
+    }
+    
+    renderTabs(pane);
 }
 
 function switchTab(filename, pane) {
