@@ -6,39 +6,42 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JNote — Jackal Notebook</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.4.3/echarts.min.js"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
+
 <body>
 
-  <aside id="sidebar">
-    <div class="side-header">
-        <span>Project Files</span>
-        <button class="btn-new" onclick="newFile()">+</button>
-    </div>
-    <ul id="file-list"></ul>
-    
-    <div id="file-ops">
-        <button onclick="renameFilePrompt()" class="btn-minimal">Rename</button>
-        <button onclick="deleteFilePrompt()" class="btn-minimal">Delete</button>
-    </div>
-</aside>
+    <aside id="sidebar">
+        <div class="side-header">
+            <span>Project Files</span>
+            <button class="btn-new" onclick="newFile()">+</button>
+        </div>
+        <ul id="file-list"></ul>
+
+        <div id="file-ops">
+            <button onclick="renameFilePrompt()" class="btn-minimal">Rename</button>
+            <button onclick="deleteFilePrompt()" class="btn-minimal">Delete</button>
+        </div>
+    </aside>
 
 
     <div id="custom-modal" class="modal-overlay">
-    <div class="modal-content">
-        <h3 id="modal-title">Rename File</h3>
-        <div class="modal-body">
-            <input type="text" id="modal-input" spellcheck="false">
-            <p id="modal-msg"></p>
-        </div>
-        <div class="modal-footer">
-            <button onclick="closeModal()" class="btn-secondary">Cancel</button>
-            <button id="modal-confirm-btn" class="btn-primary">Confirm</button>
+        <div class="modal-content">
+            <h3 id="modal-title">Rename File</h3>
+            <div class="modal-body">
+                <input type="text" id="modal-input" spellcheck="false">
+                <p id="modal-msg"></p>
+            </div>
+            <div class="modal-footer">
+                <button onclick="closeModal()" class="btn-secondary">Cancel</button>
+                <button id="modal-confirm-btn" class="btn-primary">Confirm</button>
+            </div>
         </div>
     </div>
-</div>
 
     <main id="main">
         <header class="toolbar">
@@ -56,7 +59,7 @@
                 <button class="btn-save" onclick="saveFile()">Save</button>
             </div>
 
-            
+
             <button class="btn-run" onclick="runCode()">
                 <span class="run-icon">▶</span>
                 <span>Run Code</span>
@@ -78,9 +81,9 @@
                             onscroll="syncScroll('top')"></textarea>
                     </div>
                 </div>
-
-                
             </div>
+
+            <div id="resizer-v" class="resizer"></div>
 
             <div id="chart-area">
                 <div id="jackalChart" style="width: 100%; height: 100%;"></div>
@@ -91,7 +94,8 @@
             <div class="terminal-side">
                 <div class="console-header">
                     <span>TERMINAL</span>
-                    <button class="btn-close-terminal" onclick="toggleTerminal()" style="background:transparent; border:none; cursor:pointer; color:inherit;">×</button>
+                    <button class="btn-close-terminal" onclick="toggleTerminal()"
+                        style="background:transparent; border:none; cursor:pointer; color:inherit;">×</button>
                 </div>
                 <div id="console">System ready...</div>
             </div>

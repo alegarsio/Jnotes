@@ -7,7 +7,11 @@ const modal = document.getElementById('custom-modal');
 const modalInput = document.getElementById('modal-input');
 const modalTitle = document.getElementById('modal-title');
 const modalConfirmBtn = document.getElementById('modal-confirm-btn');
+const resizer = document.getElementById('resizer-v');
+const leftSide = document.getElementById('editor-container');
+const workspace = document.getElementById('workspace');
 
+let isResizing = false;
 
 let myChart = null;
 let autosaveTimer;
@@ -15,6 +19,33 @@ let currentRawData = [];
 let openFiles = { top: [], bottom: [] };
 let activeFile = { top: null, bottom: null };
 let currentActiveFile = null;
+
+resizer.addEventListener('mousedown', (e) => {
+    isResizing = true;
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+});
+
+document.addEventListener('mousemove', (e) => {
+    if (!isResizing) return;
+
+    const workspaceRect = workspace.getBoundingClientRect();
+    const newWidth = ((e.clientX - workspaceRect.left) / workspaceRect.width) * 100;
+
+    if (newWidth > 15 && newWidth < 85) {
+        leftSide.style.width = `${newWidth}%`;
+        if (myChart) myChart.resize(); 
+    }
+});
+
+document.addEventListener('mouseup', () => {
+    if (isResizing) {
+        isResizing = false;
+        document.body.style.cursor = 'default';
+        document.body.style.userSelect = 'auto';
+        if (myChart) myChart.resize();
+    }
+});
 function showModal(title, defaultValue, onConfirm, isDelete = false) {
     modal.style.display = 'flex';
     modalTitle.innerText = title;

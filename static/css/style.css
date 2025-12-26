@@ -233,17 +233,16 @@ body {
     flex: 1; 
     display: flex; 
     overflow: hidden; 
+    position: relative;
 }
 
 #editor-container { 
-    flex: 1; 
+    width: 40%; 
+    min-width: 200px;
     display: flex; 
     flex-direction: column; 
-    border-right: 1px solid var(--brd); 
-    background: var(--brd); 
-    gap: 1px; 
+    border-right: none; 
 }
-
 .editor-pane {
     flex: 1;
     display: flex;
@@ -331,12 +330,23 @@ body {
     overflow: auto;
 }
 
+.resizer {
+    width: 4px;
+    cursor: col-resize;
+    background: transparent;
+    transition: background 0.2s;
+    z-index: 10;
+}
+
+.resizer:hover, .resizer:active {
+    background: var(--accent); 
+}
+
 #chart-area { 
-    flex: 1.2; 
+    flex: 1; /* Mengambil sia ruang */
     background: #fbfbfd; 
     padding: 20px; 
-    display: flex;
-    flex-direction: column;
+    min-width: 200px;
 }
 
 #console-container { 
