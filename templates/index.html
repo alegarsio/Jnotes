@@ -72,6 +72,10 @@
     <main id="main">
         <header class="toolbar">
             <button class="btn-minimal" onclick="toggleSidebar()">☰</button>
+            <button class="btn-minimal" onclick="showGithubModal()" title="GitHub Sync">
+                <i class="fa-brands fa-github" style="font-size: 16px; margin-right: 5px;"></i>
+                <span>Sync GitHub</span>
+            </button>
             <input type="text" id="filename-input" placeholder="untitled.jackal">
 
             <select id="chart-type">
@@ -80,10 +84,7 @@
                 <option value="bar">Bar Chart</option>
                 <option value="pie">Pie Chart</option>
             </select>
-            <button class="btn-minimal" onclick="showGithubModal()" title="GitHub Sync">
-                <i class="fa-brands fa-github" style="font-size: 16px; margin-right: 5px;"></i>
-                <span>Sync GitHub</span>
-            </button>
+            
             <div style="flex: 1;"></div>
             <div class="save-container">
                 <span id="save-status">All changes saved</span>

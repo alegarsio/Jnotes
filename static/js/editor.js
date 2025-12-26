@@ -27,17 +27,21 @@ resizer.addEventListener('mousedown', (e) => {
 });
 
 document.addEventListener('mousemove', (e) => {
-    if (!isResizing) return;
+    if (typeof isResizing === 'undefined' || !isResizing) return;
+    
+    const workspace = document.getElementById('workspace');
+    const leftSide = document.getElementById('editor-container');
+    if (!workspace || !leftSide) return;
 
-    const workspaceRect = workspace.getBoundingClientRect();
-    const newWidth = ((e.clientX - workspaceRect.left) / workspaceRect.width) * 100;
+    const rect = workspace.getBoundingClientRect();
+    const newWidth = ((e.clientX - rect.left) / rect.width) * 100;
 
     if (newWidth > 15 && newWidth < 85) {
         leftSide.style.width = `${newWidth}%`;
-        if (myChart) myChart.resize(); 
+        localStorage.setItem('editor_width', `${newWidth}%`);
+        if (typeof myChart !== 'undefined') myChart.resize();
     }
 });
-
 document.addEventListener('mouseup', () => {
     if (isResizing) {
         isResizing = false;
@@ -46,6 +50,29 @@ document.addEventListener('mouseup', () => {
         if (myChart) myChart.resize();
     }
 });
+
+function loadLayoutSettings() {
+    const isSidebarClosed = localStorage.getItem('sidebar_closed') === 'true';
+    const isConsoleClosed = localStorage.getItem('console_closed') === 'true';
+    const lastEditorWidth = localStorage.getItem('editor_width');
+
+    const sidebar = document.getElementById('sidebar');
+    const consoleContainer = document.getElementById('console-container');
+    const editorSide = document.getElementById('editor-container');
+
+    if (isSidebarClosed && sidebar) {
+        sidebar.classList.add('closed');
+    }
+
+    if (isConsoleClosed && consoleContainer) {
+        consoleContainer.classList.add('closed');
+    }
+
+    if (lastEditorWidth && editorSide) {
+        editorSide.style.width = lastEditorWidth;
+    }
+}
+
 
 function showGithubModal() {
     document.getElementById('github-modal').style.display = 'flex';
@@ -571,9 +598,23 @@ function newFile() {
     updateLineNumbers(pane);
     if (myChart) myChart.clear();
 }
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    if (!sidebar) return;
+    sidebar.classList.toggle('closed');
+    localStorage.setItem('sidebar_closed', sidebar.classList.contains('closed'));
+}
+function toggleTerminal() {
+    const consoleContainer = document.getElementById('console-container');
+    if (!consoleContainer) return;
 
-function toggleSidebar() { sidebar.classList.toggle('closed'); setTimeout(() => myChart && myChart.resize(), 350); }
-function toggleTerminal() { terminal.classList.toggle('closed'); setTimeout(() => myChart && myChart.resize(), 350); }
+    consoleContainer.classList.toggle('closed');
+    localStorage.setItem('console_closed', consoleContainer.classList.contains('closed'));
 
+    if (typeof myChart !== 'undefined') {
+        setTimeout(() => myChart.resize(), 300);
+    }
+}
 initApp();
 window.addEventListener('resize', () => myChart && myChart.resize());
+window.addEventListener('DOMContentLoaded', loadLayoutSettings);

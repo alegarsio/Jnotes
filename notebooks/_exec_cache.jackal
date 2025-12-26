@@ -1,7 +1,6 @@
-let arr = Array([1921,2212,1221,1821,1421])
-          . smooth(3)
-          . collect()
-      
-
-print(arr)
-
+let data = [ 12000, 13000, 16200 , 25000 ,19000 , 18200]
+let result = Array(data)
+            . smooth(2)
+            . collect()
+        
+println(result)
