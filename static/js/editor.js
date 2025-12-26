@@ -63,6 +63,22 @@ function showModal(title, defaultValue, onConfirm, isDelete = false) {
     }
 }
 
+function updateQuickStats(data) {
+    const flatData = data.flat().filter(n => typeof n === 'number');
+    
+    if (flatData.length === 0) return;
+
+    const sum = flatData.reduce((a, b) => a + b, 0);
+    const avg = sum / flatData.length;
+    const max = Math.max(...flatData);
+    const min = Math.min(...flatData);
+
+    document.getElementById('stat-avg').innerText = avg.toFixed(2);
+    document.getElementById('stat-max').innerText = max.toFixed(2);
+    document.getElementById('stat-min').innerText = min.toFixed(2);
+    document.getElementById('stat-sum').innerText = sum.toFixed(2);
+}
+
 function closeModal() {
     modal.style.display = 'none';
 }
@@ -158,7 +174,7 @@ async function loadFileToPane(filename, pane) {
     }
 }
 function renderTabs(pane) {
-    // Hanya jalankan logika tab jika pane adalah 'top'
+
     if (pane !== 'top') return;
 
     const tabBar = document.getElementById(`tab-bar-top`);
@@ -329,27 +345,36 @@ async function renameFilePrompt() {
         }
     }
 }
-
 function renderTable(chartData) {
     const wrapper = document.getElementById('dynamic-table-wrapper');
     currentRawData = chartData;
+
     if (!Array.isArray(chartData) || chartData.length === 0) {
         wrapper.innerHTML = '<p class="empty-msg">No data processed</p>';
+        updateQuickStats([]);
         return;
     }
+
+    updateQuickStats(chartData);
+
     let tableHTML = '<table><thead><tr><th>Index</th>';
     const isMulti = Array.isArray(chartData[0]);
+
     if (isMulti) {
         chartData.forEach((_, i) => tableHTML += `<th>Series ${i + 1}</th>`);
     } else {
         tableHTML += '<th>Value</th>';
     }
     tableHTML += '</tr></thead><tbody>';
+
     const rowCount = isMulti ? chartData[0].length : chartData.length;
     for (let r = 0; r < rowCount; r++) {
         tableHTML += `<tr><td># ${r}</td>`;
         if (isMulti) {
-            chartData.forEach(series => tableHTML += `<td>${series[r] !== undefined ? series[r] : '-'}</td>`);
+            chartData.forEach(series => {
+                const val = series[r] !== undefined ? series[r] : '-';
+                tableHTML += `<td>${val}</td>`;
+            });
         } else {
             tableHTML += `<td><b>${chartData[r]}</b></td>`;
         }

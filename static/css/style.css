@@ -577,3 +577,23 @@ table tr:hover td {
     cursor: pointer;
 }
 
+
+#quick-stats-bar {
+    display: flex;
+    gap: 20px;
+    padding: 10px 20px;
+    background: rgba(0, 113, 227, 0.03);
+    border-bottom: 1px solid var(--brd);
+}
+
+.stat-item {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--txt-muted);
+}
+
+.stat-item span {
+    color: var(--accent);
+    font-family: 'JetBrains Mono', monospace;
+    margin-left: 4px;
+}
