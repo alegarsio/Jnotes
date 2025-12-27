@@ -385,27 +385,32 @@ function handleInput(pane) {
         saveFile(true, pane);
     }, 1500);
 }
-
 async function saveFile(isAutosave = false, pane = 'top') {
     const editorElem = document.getElementById(`code-editor-${pane}`);
-    const filename = activeFile[pane] || filenameInput.value || 'untitled.jackal';
-    if (!editorElem) return;
+    let filename = activeFile[pane] || filenameInput.value;
+
+    if (!editorElem || !filename) return;
 
     if (saveStatus) saveStatus.innerText = "Saving...";
-    await fetch('/save_file', { 
-        method: 'POST', 
-        headers: {'Content-Type': 'application/json'}, 
-        body: JSON.stringify({ filename, content: editorElem.value }) 
-    });
-    
-    localStorage.setItem('lastOpenedFile', filename);
-    setTimeout(() => {
-        if (saveStatus) saveStatus.innerText = "All changes saved";
-    }, 500);
 
-    if (!isAutosave) {
-        consoleBox.innerText = `[System] Saved ${filename}`;
-        refreshFileList();
+    try {
+        const res = await fetch('/save_file', { 
+            method: 'POST', 
+            headers: {'Content-Type': 'application/json'}, 
+            body: JSON.stringify({ filename, content: editorElem.value }) 
+        });
+
+        if (res.ok) {
+            localStorage.setItem('lastOpenedFile', filename);
+            if (saveStatus) saveStatus.innerText = "All changes saved";
+            
+            if (!isAutosave) {
+                consoleBox.innerText = `[System] Saved ${filename}`;
+                refreshFileList(); 
+            }
+        }
+    } catch (e) {
+        if (saveStatus) saveStatus.innerText = "Save failed";
     }
 }
 
@@ -636,14 +641,30 @@ function renderChart(chartData) {
 
     myChart.setOption(option, true);
 }
-function newFile() { 
+function newFile() {
     const pane = 'top';
+    const fileName = prompt("Masukkan nama file baru (contoh: data_sales.jackal):");
+    
+    if (!fileName) return;
+
+    const finalName = fileName.endsWith('.jackal') ? fileName : fileName + '.jackal';
+    
     const editorElem = document.getElementById(`code-editor-${pane}`);
     if (editorElem) editorElem.value = ''; 
-    filenameInput.value = ''; 
-    localStorage.removeItem('lastOpenedFile');
+    
+    filenameInput.value = finalName;
+    activeFile[pane] = finalName;
+    currentActiveFile = finalName;
+
+    if (!openFiles[pane].includes(finalName)) {
+        openFiles[pane].push(finalName);
+    }
+
+    localStorage.setItem('lastOpenedFile', finalName);
     updateLineNumbers(pane);
-    if (myChart) myChart.clear();
+    renderTabs(pane);
+    
+    saveFile(false, pane);
 }
 function toggleSidebar() {
     const sidebar = document.getElementById('sidebar');
@@ -669,7 +690,12 @@ window.addEventListener('resize', () => {
         myChart.resize();
     }
 });
-
+document.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        saveFile(false, 'top');
+    }
+});
 window.addEventListener('DOMContentLoaded', () => {
     loadLayoutSettings();
     enableAutoIndent('code-editor-top');
