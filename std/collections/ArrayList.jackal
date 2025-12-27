@@ -13,13 +13,6 @@ class ArrayList <T> implements List{
         this.data = [];
     }
 
-    /**
-     * function iterator();
-     * implements iterator function of interface List
-     * @return Array object of the list
-    **/
-    
-    @override
     func iterator() -> Array{
         return data;
     }

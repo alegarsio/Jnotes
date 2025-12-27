@@ -709,8 +709,61 @@ function toggleTerminal() {
 
     if (typeof myChart !== 'undefined') {
         setTimeout(() => myChart.resize(), 300);
+ 
     }
 }
+
+function toggleAIChat() {
+    const sidebar = document.getElementById('ai-chat-sidebar');
+    sidebar.classList.toggle('closed');
+}
+
+async function sendToGemini() {
+    const inputField = document.getElementById('ai-user-input');
+    const container = document.getElementById('ai-chat-messages');
+    const prompt = inputField.value.trim();
+    
+    const codeContext = document.getElementById('code-editor-top').value;
+    const currentFile = activeFile['top'] || 'untitled.jackal';
+
+    if (!prompt) return;
+
+    appendMessage('user', prompt);
+    inputField.value = '';
+    inputField.style.height = 'auto';
+    
+    const loadingId = 'loading-' + Date.now();
+    const loadingDiv = appendMessage('bot', 'Gemini is analyzing your file...', loadingId);
+
+    try {
+        const res = await fetch('/ask_ai', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                prompt: prompt, 
+                context: codeContext,
+                filename: currentFile 
+            })
+        });
+
+        const data = await res.json();
+        loadingDiv.innerText = data.suggestion;
+    } catch (e) {
+        loadingDiv.innerText = "Error: Failed to connect to Gemini.";
+        loadingDiv.classList.add('error');
+    }
+}
+
+function appendMessage(sender, text) {
+    const container = document.getElementById('ai-chat-messages');
+    const msgDiv = document.createElement('div');
+    msgDiv.className = `ai-msg ${sender}`;
+    msgDiv.innerText = text;
+    container.appendChild(msgDiv);
+    container.scrollTop = container.scrollHeight;
+    return msgDiv;
+}
+
 initApp();
 
 window.addEventListener('resize', () => {
@@ -722,6 +775,13 @@ document.addEventListener('keydown', (e) => {
     if ((e.ctrlKey || e.metaKey) && e.key === 's') {
         e.preventDefault();
         saveFile(false, 'top');
+    }
+});
+
+document.getElementById('ai-user-input')?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendToGemini();
     }
 });
 window.addEventListener('DOMContentLoaded', () => {

@@ -1,10 +1,10 @@
+import std.collections.ml.generalML
 /**
  * @author Alegrarsio gifta lesmana 
  * Collections is set of reusable function, for support stream process of your data
  * Collections available in Map dan Array Wrapper class
 **/
-class Collections{
-
+class Collections extends GeneralML{
     /**
      * constructor in this collections is also dynamic data type
      * @param data
@@ -23,6 +23,4 @@ class Collections{
         this.data = __array_sort(this.data, callback);
         return this;
     }
-
-    
 }

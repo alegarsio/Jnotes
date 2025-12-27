@@ -6,8 +6,10 @@ import std.Stream.Tree.SerialTree;
  * @author Alegrarsio gifta lesmana
  * @class ArrayStream represents the array stream API 
  * this library is the part of std/collections/Abstract
+ * for now the arraylist library contains the jackal machine learning api
 **/
 class ArrayStream implements Streamable extends Collections { 
+    
     /**
      * ArrayStream object use the array type constructor
      * @return an array for the result
@@ -18,82 +20,77 @@ class ArrayStream implements Streamable extends Collections {
         this.data = data;
     }
 
-    func predictProb(history, labels, k) {
-        let results = []
-        for (point in this.data) {
-            let prob = __knn_predictprob(point, history, labels, k)
-            results.push(prob)
-        }
-        this.data = results
-        return this
-    }
+    /**
+     * now this file is in std/collections/ml/generalML
+    **/
 
-    func confusionMatrix(key) {
-        return __confusion_matrix(this.data, key)
-    }
+    // func confusionMatrix(key) {
+    //     return __confusion_matrix(this.data, kunciJawaban)
+    // }
 
-    func split(ratio) {
-        return __split(this.data, ratio)
-    }
+    
+    // func split(ratio) {
+    //     return __split(this.data, ratio)
+    // }
 
-    func transpose(){
-        this.data = native_transpose(this.data)
-        return this
-    }
+    // func transpose(){
+    //     this.data = native_transpose(this.data)
+    //     return this
+    // }
 
-    func standardize() {
-        this.data = native_standardnize(this.data)
-        return this
-    }
+    // func standardize() {
+    //     this.data = native_standardnize(this.data)
+    //     return this
+    // }
 
-    func smooth(period) {
-        this.data = native_smooth(this.data, period)
-        return this
-    }
+    // func smooth(period) {
+    //     this.data = native_smooth(this.data, period)
+    //     return this
+    // }
 
-    func correlate(otherArray) {
-        let score = native_correlate(this.data, otherArray)
-        return score
-    }
+    // func correlate(otherArray) {
+    //     let score = native_correlate(this.data, otherArray)
+    //     return score
+    // }
 
-    func normalize() {
-        this.data = __normalize(this.data)
-        return this
-    }
+    // func normalize() {
+    //     this.data = __normalize(this.data)
+    //     return this
+    // }
 
-    func evaluate(actualLabels) {
-        let score = __accuracy(this.data, actualLabels)
-        return score
-    }
+    // func evaluate(actualLabels) {
+    //     let score = __accuracy(this.data, actualLabels)
+    //     return score
+    // }
 
-    func classify(history, labels, k) {
-        let results = []
-        for (point in this.data) {
+    // func classify(history, labels, k) {
+    //     let results = []
+    //     for (point in this.data) {
            
-            let label = __knn(point, history, labels, k)
-            results.push(label)
-        }
-        this.data = results
-        return this
-    }
+    //         let label = __knn(point, history, labels, k)
+    //         results.push(label)
+    //     }
+    //     this.data = results
+    //     return this
+    // }
     
     func mean() {
         return __array_mean(this.data);
     }
 
-    func getTrend() {
-        let model = predicts(this.data[0], this.data[1])
-        let m = model[0]
-        let c = model[1]
+    // func getTrend() {
+    //     let model = predicts(this.data[0], this.data[1])
+    //     let m = model[0]
+    //     let c = model[1]
         
-        let trend = []
-        for (i in this.data[0]) {
-            trend.push((m * i) + c)
-        }
+    //     let trend = []
+    //     for (i in this.data[0]) {
+    //         trend.push((m * i) + c)
+    //     }
         
-        this.data.push(trend)
-        return this
-    }
+    //     this.data.push(trend)
+    //     return this
+    // }
 
      /**
      * sorted is a higher order function to sort the elements in the array
@@ -180,9 +177,9 @@ class ArrayStream implements Streamable extends Collections {
         return total / count;
     }
 
-    func shuffle(labels) {
-        return __sync_shuffle(this.data, labels)
-    }
+    // func shuffle(labels) {
+    //     return __sync_shuffle(this.data, labels)
+    // }
 
     func toTree() {
         return this.inOrder();

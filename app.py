@@ -1,8 +1,20 @@
 import os
 import subprocess
 from flask import Flask, request, jsonify, render_template
+import google.generativeai as genai
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
+
+api_key = os.getenv("GEMINI_API_KEY")
+
+if not api_key:
+    print("Warning: GEMINI_API_KEY tidak ditemukan di file .env")
+
+genai.configure(api_key=api_key)
+model = genai.GenerativeModel('gemini-1.5-flash')
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -68,6 +80,33 @@ def rename_file():
         return jsonify({"status": "success"})
     return jsonify({"status": "error", "message": "File not found"}), 404
 
+@app.route('/ask_ai', methods=['POST'])
+def ask_ai():
+    data = request.json
+    user_prompt = data.get('prompt')
+    code_context = data.get('context')
+    filename = data.get('filename')
+    
+    system_instruction = f"""
+    You are an expert AI Assistant for JNote IDE. 
+    The user is currently working on a file named: {filename}
+    
+    Current File Content:
+    ---
+    {code_context}
+    ---
+    
+    Instruction: Please answer the user's question based on the provided code context. 
+    If they ask to fix something, refer to the code above. 
+    Be concise and professional.
+    """
+    
+    try:
+        response = model.generate_content(system_instruction + "\n\nUser Question: " + user_prompt)
+        return jsonify({"suggestion": response.text})
+    except Exception as e:
+        return jsonify({"suggestion": f"AI Error: {str(e)}"}), 500
+    
 @app.route('/run', methods=['POST'])
 def run_code():
     code = request.json.get('code')

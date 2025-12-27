@@ -30,6 +30,36 @@
     </aside>
 
 
+    <aside id="ai-chat-sidebar" class="closed">
+        <div class="ai-chat-header">
+            <div class="ai-title">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2L14.85 9.15L22 12L14.85 14.85L12 22L9.15 14.85L2 12L9.15 9.15L12 2Z" fill="#8ab4f8" />
+                    <path d="M19 3L19.71 4.79L21.5 5.5L19.71 6.21L19 8L18.29 6.21L16.5 5.5L18.29 4.79L19 3Z"
+                        fill="#8ab4f8" />
+                </svg>
+                <span>Gemini Assistant</span>
+            </div>
+            <button onclick="toggleAIChat()" class="btn-close-ai">×</button>
+        </div>
+
+        <div id="ai-chat-messages">
+            <div class="ai-msg bot">
+                Hi! I'm your Gemini assistant. I can help you analyze data, fix your Jackal code, or explain your
+                charts.
+            </div>
+        </div>
+
+        <div class="ai-chat-input-area">
+            <textarea id="ai-user-input" placeholder="Ask me anything..." rows="1"
+                oninput="this.style.height = '';this.style.height = this.scrollHeight + 'px'"></textarea>
+            <button onclick="sendToGemini()" id="btn-send-ai">
+                <i class="fa-solid fa-paper-plane"></i>
+            </button>
+        </div>
+    </aside>
+
+
     <div id="custom-modal" class="modal-overlay">
         <div class="modal-content">
             <h3 id="modal-title">Rename File</h3>
@@ -88,6 +118,15 @@
             <button class="btn-minimal" onclick="showGithubModal()" title="GitHub Sync">
                 <i class="fa-brands fa-github" style="font-size: 16px; margin-right: 5px;"></i>
                 <span>Sync GitHub</span>
+            </button>
+            <button class="btn-ai-magic" onclick="toggleAIChat()" title="Gemini AI Assistant">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2L14.85 9.15L22 12L14.85 14.85L12 22L9.15 14.85L2 12L9.15 9.15L12 2Z"
+                        fill="currentColor" />
+                    <path d="M19 3L19.71 4.79L21.5 5.5L19.71 6.21L19 8L18.29 6.21L16.5 5.5L18.29 4.79L19 3Z"
+                        fill="currentColor" />
+                </svg>
+                <span>Gemini</span>
             </button>
             <input type="text" id="filename-input" placeholder="untitled.jackal">
 

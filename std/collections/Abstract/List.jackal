@@ -37,13 +37,7 @@ interface List {
     **/
     func get();
 
-    /**
-     * stream()
-     * represents the function to convert the list to streamable object Array
-     * @return Array object of the list
-    **/
-    func stream();
-
-    func iterator();
+    
+    func stream() ;
 
 }

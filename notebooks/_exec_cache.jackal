@@ -1,1 +1,6 @@
-println("hello world")
+let data = [ 12000, 13000, 16200 , 25000 ,19000 , 18200 ]
+let result = Array(data)
+            . smooth(3)
+            . collect()
+        
+println(result)
