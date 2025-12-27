@@ -31,15 +31,17 @@ document.addEventListener('mousemove', (e) => {
     
     const workspace = document.getElementById('workspace');
     const leftSide = document.getElementById('editor-container');
-    if (!workspace || !leftSide) return;
-
     const rect = workspace.getBoundingClientRect();
-    const newWidth = ((e.clientX - rect.left) / rect.width) * 100;
+    
+    let newWidth = ((e.clientX - rect.left) / rect.width) * 100;
 
     if (newWidth > 15 && newWidth < 85) {
         leftSide.style.width = `${newWidth}%`;
         localStorage.setItem('editor_width', `${newWidth}%`);
-        if (typeof myChart !== 'undefined') myChart.resize();
+        
+        if (typeof myChart !== 'undefined' && myChart) {
+            myChart.resize();
+        }
     }
 });
 document.addEventListener('mouseup', () => {
@@ -60,17 +62,18 @@ function loadLayoutSettings() {
     const consoleContainer = document.getElementById('console-container');
     const editorSide = document.getElementById('editor-container');
 
-    if (isSidebarClosed && sidebar) {
-        sidebar.classList.add('closed');
-    }
-
-    if (isConsoleClosed && consoleContainer) {
-        consoleContainer.classList.add('closed');
-    }
-
+    if (isSidebarClosed && sidebar) sidebar.classList.add('closed');
+    if (isConsoleClosed && consoleContainer) consoleContainer.classList.add('closed');
+    
     if (lastEditorWidth && editorSide) {
         editorSide.style.width = lastEditorWidth;
     }
+
+    setTimeout(() => {
+        if (typeof myChart !== 'undefined' && myChart) {
+            myChart.resize();
+        }
+    }, 100);
 }
 
 
@@ -281,6 +284,36 @@ function renderTabs(pane) {
         tabBar.appendChild(tab);
     });
 }
+function enableAutoIndent(editorId) {
+    const textarea = document.getElementById(editorId);
+    if (!textarea) return;
+
+    textarea.addEventListener('keydown', function(e) {
+        if (e.key === 'Tab') {
+            e.preventDefault();
+            const start = this.selectionStart;
+            const end = this.selectionEnd;
+            this.value = this.value.substring(0, start) + "    " + this.value.substring(end);
+            this.selectionStart = this.selectionEnd = start + 4;
+        }
+
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            const start = this.selectionStart;
+            const text = this.value;
+            const lineStart = text.lastIndexOf('\n', start - 1) + 1;
+            const currentLine = text.substring(lineStart, start);
+            const indentMatch = currentLine.match(/^\s*/);
+            const indent = indentMatch ? indentMatch[0] : "";
+            
+            const before = text.substring(0, start);
+            const after = text.substring(start);
+            
+            this.value = before + "\n" + indent + after;
+            this.selectionStart = this.selectionEnd = start + indent.length + 1;
+        }
+    });
+}
 
 function closeTab(event, filename, pane) {
     event.stopPropagation();
@@ -485,110 +518,124 @@ function exportToCSV() {
     document.body.appendChild(link);
     link.click();
 }
-
 function renderChart(chartData) {
     const chartDom = document.getElementById('jackalChart');
     if (!myChart) myChart = echarts.init(chartDom);
     
     const type = document.getElementById('chart-type').value;
-    const isMulti = Array.isArray(chartData) && Array.isArray(chartData[0]);
+    const colors = ['#0071e3', '#34c759', '#af52de', '#ff9500', '#ff2d55', '#5ac8fa'];
     
+    const parseNestedData = (data) => {
+        if (!Array.isArray(data)) return parseFloat(data) || 0;
+        return data.map(item => parseNestedData(item));
+    };
+
+    const processedData = parseNestedData(chartData);
     let series = [];
     let xAxisData = [];
-    const colors = ['#0071e3', '#34c759', '#af52de', '#ff9500', '#ff2d55'];
+    const isMultiSeries = Array.isArray(processedData) && Array.isArray(processedData[0]);
 
-    if (isMulti) {
-        chartData.forEach((data, i) => {
+    if (type === 'pie') {
+        const flatPieData = isMultiSeries ? processedData[0] : processedData;
+        series.push({
+            type: 'pie',
+            radius: ['45%', '70%'],
+            itemStyle: { borderRadius: 10, borderColor: '#fff', borderWidth: 2 },
+            label: { show: false },
+            emphasis: { label: { show: true, fontSize: '16', fontWeight: 'bold' } },
+            data: flatPieData.map((val, i) => ({ value: val, name: `Data ${i}` }))
+        });
+    } else if (type === 'scatter') {
+        const scatterData = (isMultiSeries && processedData.length >= 2) 
+            ? processedData[0].map((val, i) => [val, processedData[1][i] || 0])
+            : processedData.flat(Infinity).map((val, i) => [i, val]);
+        
+        series.push({
+            type: 'scatter',
+            symbolSize: 15,
+            data: scatterData,
+            itemStyle: {
+                color: colors[0],
+                shadowBlur: 10,
+                shadowColor: 'rgba(0, 113, 227, 0.3)',
+                opacity: 0.8
+            }
+        });
+    } else {
+        const seriesSet = isMultiSeries ? processedData : [processedData.flat(Infinity)];
+        seriesSet.forEach((data, i) => {
             series.push({
                 name: `Series ${i + 1}`,
-                type: (type === 'area' || type === 'line') ? 'line' : type,
+                type: type === 'area' ? 'line' : type,
                 data: data,
                 smooth: true,
                 showSymbol: false,
-                emphasis: { focus: 'series', lineStyle: { width: 4 } },
-                itemStyle: { color: colors[i % colors.length] },
                 areaStyle: type === 'area' ? {
                     color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                        { offset: 0, color: colors[i % colors.length] + '55' },
+                        { offset: 0, color: colors[i % colors.length] + '66' },
                         { offset: 1, color: colors[i % colors.length] + '00' }
                     ])
-                } : null
+                } : null,
+                itemStyle: { color: colors[i % colors.length] },
+                emphasis: { focus: 'series', lineStyle: { width: 3 } }
             });
             if (data.length > xAxisData.length) xAxisData = Array.from({length: data.length}, (_, k) => k);
         });
-    } else {
-        series.push({
-            name: 'Analysis Result',
-            type: (type === 'area' || type === 'line') ? 'line' : type,
-            data: chartData,
-            smooth: true,
-            symbol: 'circle',
-            symbolSize: 8,
-            itemStyle: { color: '#0071e3' },
-            areaStyle: type === 'area' ? {
-                color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                    { offset: 0, color: 'rgba(0, 113, 227, 0.3)' },
-                    { offset: 1, color: 'rgba(0, 113, 227, 0)' }
-                ])
-            } : null
-        });
-        xAxisData = chartData.map((_, i) => i);
     }
 
     const option = {
-        animationDuration: 1000,
+        animationDuration: 1200,
         backgroundColor: 'transparent',
         tooltip: { 
-            trigger: 'axis',
-            backgroundColor: 'rgba(255, 255, 255, 0.98)',
+            trigger: (type === 'pie' || type === 'scatter') ? 'item' : 'axis',
+            backgroundColor: 'rgba(255, 255, 255, 0.95)',
             borderWidth: 0,
-            shadowBlur: 15,
+            shadowBlur: 20,
             shadowColor: 'rgba(0,0,0,0.1)',
+            textStyle: { color: '#1d1d1f', fontSize: 12 },
             axisPointer: { type: 'cross', label: { backgroundColor: '#0071e3' } }
         },
         toolbox: {
-            right: 20, 
-            top: 0,
+            show: true,
+            right: 25,
+            top: 10,
             feature: {
-                dataZoom: { yAxisIndex: 'none', title: { zoom: 'Zoom Area', back: 'Reset Zoom' } },
-                magicType: { type: ['line', 'bar'], title: { line: 'Line', bar: 'Bar' } },
+                dataZoom: { yAxisIndex: 'none', title: { zoom: 'Zoom Area', back: 'Reset' } },
+                dataView: { readOnly: false, title: 'View Data' },
+                magicType: { type: ['line', 'bar'], title: { line: 'To Line', bar: 'To Bar' } },
                 restore: { title: 'Restore' },
-                saveAsImage: { title: 'Export PNG' }
+                saveAsImage: { title: 'Export PNG', pixelRatio: 2 }
             }
         },
-        dataZoom: [
+        dataZoom: type === 'pie' ? [] : [
             { type: 'inside', start: 0, end: 100 },
             { 
                 type: 'slider', 
-                start: 0, 
-                end: 100, 
-                bottom: 10, 
+                bottom: 15, 
                 height: 20,
-                borderColor: 'transparent', 
-                fillerColor: 'rgba(0, 113, 227, 0.1)', 
-                handleStyle: { color: '#0071e3' } 
+                handleIcon: 'path://M10.7,11.9v-1.3H9.3v1.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4v1.3h1.3v-1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7V23h6.6V24.4z M13.3,19.6H6.7v-1.4h6.6V19.6z',
+                handleSize: '80%',
+                handleStyle: { color: '#fff', shadowBlur: 3, shadowColor: 'rgba(0, 0, 0, 0.6)', shadowOffsetX: 2, shadowOffsetY: 2 }
             }
         ],
-        legend: { show: series.length > 1, bottom: 40, textStyle: { color: '#86868b' } },
-        grid: { top: '15%', left: '5%', right: '5%', bottom: '20%', containLabel: true },
-        xAxis: { 
-            type: 'category', 
-            data: xAxisData, 
-            axisLine: { lineStyle: { color: '#d2d2d7' } }, 
-            axisLabel: { color: '#86868b' }, 
-            boundaryGap: type === 'bar' 
+        grid: { top: '18%', left: '5%', right: '8%', bottom: '15%', containLabel: true },
+        xAxis: type === 'pie' ? { show: false } : { 
+            type: type === 'scatter' ? 'value' : 'category', 
+            data: type === 'scatter' ? null : xAxisData,
+            axisLine: { lineStyle: { color: '#d2d2d7' } },
+            splitLine: { show: false }
         },
-        yAxis: { 
+        yAxis: type === 'pie' ? { show: false } : { 
             type: 'value', 
-            scale: true, 
-            splitLine: { lineStyle: { color: '#f5f5f7', type: 'dashed' } }, 
-            axisLabel: { color: '#86868b' } 
+            scale: true,
+            splitLine: { lineStyle: { type: 'dashed', color: '#f5f5f7' } }
         },
+        legend: { show: series.length > 1 || type === 'pie', top: 15, left: 'center', textStyle: { color: '#86868b' } },
         series: series
     };
+
     myChart.setOption(option, true);
 }
-
 function newFile() { 
     const pane = 'top';
     const editorElem = document.getElementById(`code-editor-${pane}`);
@@ -616,5 +663,15 @@ function toggleTerminal() {
     }
 }
 initApp();
-window.addEventListener('resize', () => myChart && myChart.resize());
+
+window.addEventListener('resize', () => {
+    if (typeof myChart !== 'undefined' && myChart) {
+        myChart.resize();
+    }
+});
+
+window.addEventListener('DOMContentLoaded', () => {
+    loadLayoutSettings();
+    enableAutoIndent('code-editor-top');
+});
 window.addEventListener('DOMContentLoaded', loadLayoutSettings);

@@ -367,7 +367,7 @@ body {
 }
 
 #chart-area { 
-    flex: 1; /* Mengambil sia ruang */
+    flex: 1; 
     background: #fbfbfd; 
     padding: 20px; 
     min-width: 200px;
