@@ -26,6 +26,14 @@ resizer.addEventListener('mousedown', (e) => {
     document.body.style.userSelect = 'none';
 });
 
+document.addEventListener('DOMContentLoaded', () => {
+    mermaid.initialize({ 
+        startOnLoad: false, 
+        theme: 'dark', 
+        securityLevel: 'loose' 
+    });
+});
+
 document.addEventListener('mousemove', (e) => {
     if (typeof isResizing === 'undefined' || !isResizing) return;
     
@@ -52,6 +60,7 @@ document.addEventListener('mouseup', () => {
         if (myChart) myChart.resize();
     }
 });
+
 
 function loadLayoutSettings() {
     const isSidebarClosed = localStorage.getItem('sidebar_closed') === 'true';
@@ -102,6 +111,7 @@ function showToast(message, type = 'success') {
         setTimeout(() => toast.remove(), 500);
     }, 4000);
 }
+
 function showGithubModal() {
     document.getElementById('github-modal').style.display = 'flex';
     document.getElementById('gh-repo').value = localStorage.getItem('gh_repo') || '';

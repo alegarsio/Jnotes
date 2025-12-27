@@ -1,6 +1,25 @@
-let data = [ 12000, 13000, 16200 , 25000 ,19000 , 18200 ]
-let result = Array(data)
-            . smooth(3)
+let data = [
+    [10,5],
+    [11,15],
+    [12,25],
+    [13,35]
+]
+
+
+let labels = [1 ,1 , 0 , 0]
+let nowData = [[11,17],[10,7]]
+
+let shufled = Array(data)
+              . shuffle(labels)
+
+let newData = shufled[0]
+let newlabels = shufled[1]
+
+let result = Array(nowData)
+            . classify(newData,newlabels,1)
+            . map(func(x){
+                return x * 100
+            })
             . collect()
-        
+
 println(result)

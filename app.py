@@ -14,7 +14,7 @@ if not api_key:
     print("Warning: GEMINI_API_KEY tidak ditemukan di file .env")
 
 genai.configure(api_key=api_key)
-model = genai.GenerativeModel('gemini-1.5-flash')
+model = genai.GenerativeModel('gemini-3-flash-preview')
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -28,6 +28,10 @@ if not os.path.exists(NOTEBOOK_DIR):
 @app.route('/')
 def index():
     return render_template('index.html')
+
+@app.route('/visual')
+def visual_builder():
+    return render_template('visual.html')
 
 @app.route('/list_files', methods=['GET'])
 def list_files():
