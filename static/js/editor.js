@@ -111,7 +111,9 @@ function showToast(message, type = 'success') {
         setTimeout(() => toast.remove(), 500);
     }, 4000);
 }
-
+function toggleDiagramPanel() {
+    DiagramManager.togglePanel();
+}
 function showGithubModal() {
     document.getElementById('github-modal').style.display = 'flex';
     document.getElementById('gh-repo').value = localStorage.getItem('gh_repo') || '';
@@ -451,26 +453,42 @@ async function saveFile(isAutosave = false, pane = 'top') {
 
 async function runCode() {
     const code = document.getElementById('code-editor-top').value;
-    terminal.classList.remove('closed');
-    consoleBox.innerText = "Executing...";
+    const consoleBox = document.getElementById('console');
     
-    const res = await fetch('/run', { 
-        method: 'POST', 
-        headers: {'Content-Type': 'application/json'}, 
-        body: JSON.stringify({ code: code }) 
-    });
-    
-    const data = await res.json();
-    consoleBox.innerText = data.output;
-    const match = data.output.match(/\[\[.*\]\]|\[.*\]/s);
-    if (match) {
-        try {
-            const parsedData = JSON.parse(match[0]);
-            renderChart(parsedData);
-            renderTable(parsedData);
-        } catch(e) {
-            consoleBox.innerText += "\n[Error] Data parsing failed.";
+    if (consoleBox) consoleBox.innerText = "Executing Jackal code...";
+
+    try {
+        const res = await fetch('/run', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code: code })
+        });
+
+        const data = await res.json();
+        
+        if (consoleBox) {
+            consoleBox.innerText = data.output;
         }
+
+        const match = data.output.match(/\[\[.*\]\]|\[.*\]/s);
+        
+        if (match) {
+            const parsedData = JSON.parse(match[0]);
+            
+            window.lastExecutionData = parsedData; 
+            
+            if (typeof renderChart === 'function') renderChart(parsedData);
+            if (typeof renderTable === 'function') renderTable(parsedData);
+            
+            const diagramPanel = document.getElementById('diagram-panel');
+            if (diagramPanel && !diagramPanel.classList.contains('closed')) {
+                if (typeof DiagramManager !== 'undefined') {
+                    DiagramManager.generate();
+                }
+            }
+        }
+    } catch (e) {
+        if (consoleBox) consoleBox.innerText = "Error: Failed to connect to server.";
     }
 }
 

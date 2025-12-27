@@ -87,30 +87,41 @@ def rename_file():
 @app.route('/ask_ai', methods=['POST'])
 def ask_ai():
     data = request.json
-    user_prompt = data.get('prompt')
+    prompt_user = data.get('prompt')
     code_context = data.get('context')
-    filename = data.get('filename')
-    
-    system_instruction = f"""
-    You are an expert AI Assistant for JNote IDE. 
-    The user is currently working on a file named: {filename}
-    
-    Current File Content:
-    ---
-    {code_context}
-    ---
-    
-    Instruction: Please answer the user's question based on the provided code context. 
-    If they ask to fix something, refer to the code above. 
-    Be concise and professional.
-    """
+
+    full_prompt = f"""
+                    <system>
+                    You are a Jackal language expert. Your task is to analyze code and provide suggestions along with a visual flow diagram.
+                    You MUST return ONLY a valid JSON object. Do not include markdown formatting like ```json.
+                    The JSON must have this structure:
+                    {{
+                    "suggestion": "Your text explanation here",
+                    "code": "The improved Jackal code here",
+                    "diagram": "A valid Mermaid.js graph TD syntax here"
+                    }}
+                    </system>
+
+                    <context>
+                    {code_context}
+                    </context>
+
+                    <user_request>
+                    {prompt_user}
+                    </user_request>
+                    """
+
+    response = model.generate_content(full_prompt)
     
     try:
-        response = model.generate_content(system_instruction + "\n\nUser Question: " + user_prompt)
-        return jsonify({"suggestion": response.text})
+        clean_text = response.text.strip().replace('```json', '').replace('```', '')
+        return clean_text
     except Exception as e:
-        return jsonify({"suggestion": f"AI Error: {str(e)}"}), 500
-    
+        return {
+            "suggestion": "Failed to parse AI response",
+            "code": code_context,
+            "diagram": "graph TD\n  Error[AI Output Error]"
+        }
 @app.route('/run', methods=['POST'])
 def run_code():
     code = request.json.get('code')
