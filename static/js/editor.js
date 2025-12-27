@@ -76,7 +76,32 @@ function loadLayoutSettings() {
     }, 100);
 }
 
+function showToast(message, type = 'success') {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
 
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    
+    const icons = {
+        success: 'fa-check-circle',
+        error: 'fa-exclamation-circle',
+        info: 'fa-info-circle'
+    };
+
+    toast.innerHTML = `
+        <i class="fa-solid ${icons[type] || icons.info}"></i>
+        <span>${message}</span>
+    `;
+
+    container.appendChild(toast);
+    requestAnimationFrame(() => toast.classList.add('show'));
+
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 500);
+    }, 4000);
+}
 function showGithubModal() {
     document.getElementById('github-modal').style.display = 'flex';
     document.getElementById('gh-repo').value = localStorage.getItem('gh_repo') || '';
@@ -641,17 +666,19 @@ function renderChart(chartData) {
 
     myChart.setOption(option, true);
 }
-function newFile() {
+function newFile() { 
     const pane = 'top';
-    const fileName = prompt("Masukkan nama file baru (contoh: data_sales.jackal):");
+    const fileName = prompt("Enter the new file name:");
     
-    if (!fileName) return;
+    if (!fileName) {
+        showToast("Failed to create a file", "info");
+        return;
+    }
 
     const finalName = fileName.endsWith('.jackal') ? fileName : fileName + '.jackal';
-    
     const editorElem = document.getElementById(`code-editor-${pane}`);
-    if (editorElem) editorElem.value = ''; 
     
+    if (editorElem) editorElem.value = ''; 
     filenameInput.value = finalName;
     activeFile[pane] = finalName;
     currentActiveFile = finalName;
@@ -665,6 +692,7 @@ function newFile() {
     renderTabs(pane);
     
     saveFile(false, pane);
+    showToast(`File "${finalName}" created`, "success");
 }
 function toggleSidebar() {
     const sidebar = document.getElementById('sidebar');
