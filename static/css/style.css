@@ -1090,3 +1090,31 @@ table tr:hover td {
     color: #e0e0e0;
     position: relative;
 }
+
+.blocklyPath {
+    stroke-width: 2px;
+    stroke: rgba(255,255,255,0.2);
+    fill-opacity: 0.8;
+}
+
+.blocklyEditableText rect {
+    fill: #1a1a1a !important;
+    fill-opacity: 1;
+}
+
+.blocklyText {
+    font-family: 'JetBrains Mono', monospace !important;
+    font-size: 11px !important;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Mengubah warna koneksi antar node */
+.blocklyPathDark {
+    display: none;
+}
+
+.blocklyMainBackground {
+    stroke: none !important;
+    fill: #0f0f11 !important; /* Background gelap blueprint */
+}

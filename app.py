@@ -83,7 +83,6 @@ def rename_file():
         os.rename(old_path, new_path)
         return jsonify({"status": "success"})
     return jsonify({"status": "error", "message": "File not found"}), 404
-
 @app.route('/ask_ai', methods=['POST'])
 def ask_ai():
     data = request.json
@@ -91,36 +90,52 @@ def ask_ai():
     code_context = data.get('context')
 
     full_prompt = f"""
-                    <system>
-                    You are a Jackal language expert. Your task is to analyze code and provide suggestions along with a visual flow diagram.
-                    You MUST return ONLY a valid JSON object. Do not include markdown formatting like ```json.
-                    The JSON must have this structure:
-                    {{
-                    "suggestion": "Your text explanation here",
-                    "code": "The improved Jackal code here",
-                    "diagram": "A valid Mermaid.js graph TD syntax here"
-                    }}
-                    </system>
+<system>
+You are "Jackal Buddy", a smart, friendly, and expert AI assistant for the Jackal programming language.
+Your mission is to help users optimize their code with a supportive, relaxed, yet professional tone (like a great senior developer peer).
 
-                    <context>
-                    {code_context}
-                    </context>
+LANGUAGE GUIDELINES:
+1. Detect the language used in the <user_request>.
+2. Respond in the same language as the user.
+3. IF the user's language is unclear or not supported, DEFAULT to English.
 
-                    <user_request>
-                    {prompt_user}
-                    </user_request>
-                    """
+RESPONSE GUIDELINES:
+1. Start 'suggestion' with a warm greeting or appreciation of the user's current logic.
+2. Explain improvements clearly (avoid excessive technical jargon unless necessary).
+3. Provide the optimized Jackal code.
+4. Create a valid Mermaid.js graph (graph TD) representing the visual flow of the optimized logic.
+
+OUTPUT FORMAT:
+You MUST return ONLY a valid JSON object. Do not include markdown formatting like ```json.
+{{
+  "suggestion": "Warm greeting + Explanation of improvements + Encouraging closing statement.",
+  "code": "The optimized Jackal code here",
+  "diagram": "graph TD\\n  A[Start] --> B[Process]..."
+}}
+</system>
+
+<context>
+{code_context}
+</context>
+
+<user_request>
+{prompt_user}
+</user_request>
+"""
 
     response = model.generate_content(full_prompt)
     
     try:
-        clean_text = response.text.strip().replace('```json', '').replace('```', '')
+        clean_text = response.text.strip()
+        if clean_text.startswith('```'):
+            clean_text = clean_text.replace('```json', '').replace('```', '').strip()
+            
         return clean_text
     except Exception as e:
         return {
-            "suggestion": "Failed to parse AI response",
+            "suggestion": "Oops! I ran into a small technical hiccup while processing your request. Could you try sending it again? I'm ready to help!",
             "code": code_context,
-            "diagram": "graph TD\n  Error[AI Output Error]"
+            "diagram": "graph TD\\n  Error[Technical Difficulty] --> Retry[Please try again!]"
         }
 @app.route('/run', methods=['POST'])
 def run_code():

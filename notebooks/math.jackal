@@ -1,9 +1,17 @@
-let data = [11200,12100,13400,16200,15200]
-
-
-let result = Array(data)
-            . smooth(1)
-            . collect()
-            
-            
+ let data = [
+            [11,10,50],
+            [12,20,60],
+            [13,30,70],
+            [14,40,80]
+ ]
+ 
+ let labels = [ 1 , 0, 1 , 0 ]
+ 
+ let nowData = [ [ 11,12 ,52 ] , [ 12 , 25 , 62 ], [13,32,72 ]] 
+ 
+ let result = Array(nowData)
+              . classify(data,labels,1)
+              . collect()
+              
+         
 println(result)

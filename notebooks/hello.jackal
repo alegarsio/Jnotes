@@ -21,5 +21,7 @@ let result = Array(nowData)
                 return x * 100
             })
             . collect()
-
+            
+ let acc = result.evaluate(newLabels)
+println(acc)
 println(result)

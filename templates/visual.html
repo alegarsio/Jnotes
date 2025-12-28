@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JNote — Visual Blueprint</title>
+    
+    <script src="https://unpkg.com/blockly/blockly.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            background-color: #0f0f11;
+            color: #e0e0e0;
+            overflow: hidden;
+            font-family: 'Inter', -apple-system, sans-serif;
+        }
+
+        .visual-layout {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        .visual-toolbar {
+            height: 55px;
+            background: #1a1a1c;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            border-bottom: 1px solid #2d2d30;
+            gap: 15px;
+            z-index: 100;
+        }
+
+        .workspace-main {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        #blockly-container {
+            flex: 1;
+            height: 100%;
+        }
+
+        .preview-side {
+            width: 420px;
+            background: #141416;
+            border-left: 1px solid #2d2d30;
+            display: flex;
+            flex-direction: column;
+            box-shadow: -5px 0 15px rgba(0,0,0,0.3);
+        }
+
+        .preview-header {
+            padding: 15px 20px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #555;
+            background: #1a1a1c;
+            border-bottom: 1px solid #2d2d30;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        #console {
+            height: 250px;
+            padding: 20px;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 13px;
+            color: #a6e22e;
+            background: #000;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            border-bottom: 1px solid #2d2d30;
+        }
+
+        #jackalChart {
+            flex: 1;
+            width: 100%;
+            background: #141416;
+        }
+
+        .btn-blueprint {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-blueprint:hover {
+            background: #2980b9;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+        }
+
+        .btn-back {
+            background: transparent;
+            color: #888;
+            border: 1px solid #333;
+            padding: 8px 15px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 500;
+            transition: 0.2s;
+        }
+
+        .btn-back:hover {
+            background: #2d2d30;
+            color: white;
+        }
+
+        /* Blueprint Style Overrides for Blockly */
+        .blocklySvg { background-color: #0f0f11 !important; }
+        .blocklyToolboxDiv { background-color: #1a1a1c !important; border-right: 1px solid #2d2d30 !important; }
+        .blocklyTreeLabel { color: #aaa !important; font-size: 13px !important; }
+        .blocklyFlyoutBackground { fill: #1a1a1c !important; fill-opacity: 0.9 !important; }
+    </style>
+</head>
+<body>
+
+    <div class="visual-layout">
+        <header class="visual-toolbar">
+            <a href="/" class="btn-back">
+                <i class="fa-solid fa-code"></i> Text Editor
+            </a>
+            <div style="flex: 1; font-weight: 700; font-size: 14px; letter-spacing: 0.5px; color: #fff;">
+               
+            </div>
+            <button class="btn-blueprint" onclick="VisualLogic.runBlueprint()">
+                <i class="fa-solid fa-play"></i> EXECUTE BLUEPRINT
+            </button>
+        </header>
+
+        <main class="workspace-main">
+            <div id="blockly-container"></div>
+
+            <aside class="preview-side">
+                <div class="preview-header">
+                    <i class="fa-solid fa-terminal"></i> Terminal Output
+                </div>
+                <div id="console">System initialized. Awaiting blueprint nodes...</div>
+                
+                <div class="preview-header">
+                    <i class="fa-solid fa-chart-line"></i> Live Visualization
+                </div>
+                <div id="jackalChart"></div>
+            </aside>
+        </main>
+    </div>
+
+    <script>
+        function renderChart(chartData) {
+            const chartDom = document.getElementById('jackalChart');
+            const myChart = echarts.init(chartDom, 'dark');
+            const option = {
+                backgroundColor: 'transparent',
+                tooltip: { trigger: 'axis' },
+                xAxis: { type: 'category', boundaryGap: false },
+                yAxis: { type: 'value', splitLine: { lineStyle: { color: '#2d2d30' } } },
+                series: [{
+                    data: chartData,
+                    type: 'line',
+                    smooth: true,
+                    lineStyle: { color: '#3498db', width: 3 },
+                    areaStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                        { offset: 0, color: 'rgba(52, 152, 219, 0.3)' },
+                        { offset: 1, color: 'rgba(52, 152, 219, 0)' }
+                    ])}
+                }]
+            };
+            myChart.setOption(option);
+            window.addEventListener('resize', () => myChart.resize());
+        }
+    </script>
+
+    <script src="{{ url_for('static', filename='js/visual_logic.js') }}"></script>
+</body>
+</html>
