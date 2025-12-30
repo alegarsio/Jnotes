@@ -1,0 +1,9 @@
+import jklearn.Data.DataSet
+/**
+ * Forward Declaration from JkLearn/Data
+**/
+class Data extends DataSet {}
+
+
+
+

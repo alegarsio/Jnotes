@@ -1,0 +1,12 @@
+import jklearn.supervised.Knn
+import jklearn.supervised.Regression.LogisticRegression
+import jklearn.supervised.NaiveBayes
+
+class Regression extends LogisticRegression {}
+
+class Knn extends KNeighrest {}
+
+class Nb extends NaiveBayes {}
+
+
+

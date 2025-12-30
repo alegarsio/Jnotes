@@ -1,0 +1,8 @@
+interface SuperVised{
+    
+    func fit() ;
+
+    func predict();
+    
+    func evaluate() ;
+}
