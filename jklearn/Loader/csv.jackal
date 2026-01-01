@@ -1,0 +1,12 @@
+class Csv{
+
+    init(filename : String){
+        this.filename = filename
+    }
+
+    func load() -> Array{
+        return  __read_csv(this.filename)
+    }
+
+
+}

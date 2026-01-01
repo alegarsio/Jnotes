@@ -1,0 +1,32 @@
+import jklearn.Data.DataSet
+import jklearn.Abstract.SuperVised
+
+class LinearRegression  {
+
+    init(lr, epochs) {
+        this.slope = 0.0
+        this.intercept = 0.0
+    }
+
+    func train(X, y) {
+        let results = __native_linear_regression(X, y)
+        this.slope = results[0]
+        this.intercept = results[1]
+        return this
+    }
+
+    func predict(newData) {
+        let results = []
+        for (let i = 0; i < len(newData); i = i + 1) {
+            let x_val = newData[i]
+            let y_pred = (this.slope * x_val) + this.intercept
+            results.push(y_pred)
+        }
+        return results
+    }
+
+    func evaluate(testDataSet) {
+        let predictions = this.predict(testDataSet.getData())
+        return __accuracy(predictions, testDataSet.getLabels())
+    }
+}

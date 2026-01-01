@@ -1,10 +1,25 @@
-class DataSet {
+import jklearn.Processor.PreProcessor
 
+/**
+ * @author Alegrarsio gifta lesmana
+ * the dataset class is the wrapper class for your data set
+**/
+class DataSet extends PreProcessor {
+
+    /**
+     * in the dataset constructor, the argument must be array in n demmension
+    **/
     init(data : Array, labels : Array){
         this.data = data
         this.labels = labels
     }
 
+    /**
+     * shuffle()
+     * the shuffle use for randomly shuffle the dataset and the labels
+     * @return Array[0] for the shufled dataset
+     * @return Array[1] for the shufled labels
+    **/
     func shuffle(){
 
         let p = __sync_shuffle(this.data, this.labels)
@@ -15,22 +30,50 @@ class DataSet {
         return this
     }
 
+    /**
+     * Normalization is the function for 
+     * equalizing the “scale” or range of values ​​of the various features in your dataset.
+     * @return Array
+     **/
     func normalize() {
         this.data = __normalize(this.data)
         return this
     }
 
+    /**
+     * zip is a function to merge dataset with labels
+     * @return an array of zipped dataset with labels
+    **/
     func zip(){
-        return __zip(this.data , this.labels)
+        this.data = __zip(this.data , this.labels)
+        return this
     }
+
+    /**
+     * getData()
+     * getdata is a function to get dataset (only dataset)
+     * @return Array labels
+    **/
     
     func getData() {
         return this.data
     }
 
+    /**
+     * getLabels()
+     * getLabels is a function to get labels 
+     * @return Array of labels
+    **/
     func getLabels() {
         return this.labels
     }
+
+
+    /**
+     * exports()
+     * export is a function to get all data include labels and dataset 
+     * @return Array of dataset and labels
+    **/
 
     func exports(){
         return [this.data , this.labels]

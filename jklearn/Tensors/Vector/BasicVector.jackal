@@ -1,0 +1,34 @@
+import jklearn.Tensors.BasicTensor
+
+class BasicVector extends BasicTensor<T> {
+
+    func dotProduct(otherVector : BasicTensor) {
+
+        if (this.data.length() != otherVector.exports().length()) {
+            println("Error: Length mismatch")
+            return nil
+        }
+        return __vector_dot(this.data, otherVector.exports())
+    }
+
+    func magnitude() {
+        return __vector_num(this.data)
+    }
+
+    func normalize() {
+        let mag = this.magnitude()
+        if (mag > 0) {
+            this.mul(1.0 / mag)
+        }
+        return this
+    }
+
+    func angle(otherVector) {
+        let dot = this.dotProduct(otherVector)
+        let mags = this.magnitude() * otherVector.magnitude()
+        if (mags == 0) {
+            return 0
+        }
+        return achos(dot / mags)
+    }
+}

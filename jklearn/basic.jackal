@@ -1,8 +1,14 @@
 import jklearn.Data.DataSet
-/**
- * Forward Declaration from JkLearn/Data
-**/
+import jklearn.Data.DataSet
+import jklearn.Numeric.Matrix.BasicMatrix
+import jklearn.Processor.PreProcessor
+import jklearn.Loader.csv
+import jklearn.Tensors.BasicTensor
+
 class Data extends DataSet {}
+class Matrix extends BasicMatrix {}
+class Process extends PreProcessor {}
+class LoadCsv extends Csv {}
 
 
 

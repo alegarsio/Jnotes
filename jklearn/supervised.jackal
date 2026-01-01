@@ -3,10 +3,9 @@ import jklearn.supervised.Regression.LogisticRegression
 import jklearn.supervised.NaiveBayes
 
 class Regression extends LogisticRegression {}
-
+class Linear extends LinearRegression {}
 class Knn extends KNeighrest {}
-
-class Nb extends NaiveBayes {}
-
+class Naiv_b extends NaiveBayes {}
+class Confusion_M extends ConfussionMatrix {}
 
 

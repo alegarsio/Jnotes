@@ -1,14 +1,9 @@
-import jklearn.basic
+import jklearn.Tensor
 
-let data = [
-    [10,20],
-    [20,30],
-    [30,40],
-    [40,50]
-]
+let v1 = Vector<Float>([3.0, 4.0, 0.0], [3])
+        .add(2.0)
+        .sub(1.0)
+        .magnitude()
 
-let labels = [ 1 , 1 , 0 , 0 ]
+println(v1)
 
-let dataset = DataSet(data,labels).normalize().exports()
-
-println(dataset)

@@ -1,0 +1,45 @@
+class BasicMatrix {
+
+    init(data : Array){
+        this.data = data
+    }
+
+    func transpose(){
+        this.data = native_transpose(this.data)
+        return this
+    }
+
+    func det(){
+        return __matrix_det(this.data)
+    }
+
+    func scalarmul(scalar){
+        this.data = __matrix_scalar(this.data , scalar)
+        return this
+    }
+
+    func dot(other){
+        this.data = __matrix_dot(this.data,other)
+        return this
+    }
+
+    func add(other){
+        this.data = __matrix_add(this.data,other)
+        return this
+    }
+
+    func sub(other){
+        this.data = __matrix_sub(this.data,other)
+        return this
+    }
+
+    func correlate(otherArray) {
+        let score = native_correlate(this.data, otherArray)
+        return score
+    }
+
+    func exports(){
+        return this.data
+    }
+
+}

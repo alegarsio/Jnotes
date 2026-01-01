@@ -1,3 +1,4 @@
 test.jackal
 .env
-notebooks/
+.notebooks/
+*.csv

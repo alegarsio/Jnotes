@@ -1,0 +1,17 @@
+class ConfussionMatrix{
+
+    init(data : Array , key){
+        this.data = data 
+        this.key = key
+    }
+
+    func evaluate(){
+        this.data =  __confusion_matrix(this.data, this.key)
+        return this
+    }
+
+    func exports(){
+        return [this.data , this.key]
+    }
+
+}

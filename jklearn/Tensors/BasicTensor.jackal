@@ -1,0 +1,93 @@
+import jklearn.Abstract.SuperVised
+
+class BasicTensor <T> {
+
+    init(data : Array , shape : Array) {
+        this.data = data;
+        if (shape == nil){
+            this.shape = [data.length()]
+        }
+        else {
+            this.shape = shape
+        }
+    }
+
+    func dot(otherTensor) {
+        let newData = __tensor_dot(
+            this.data, this.shape, 
+            otherTensor.data, otherTensor.shape
+        )
+
+        if (newData == nil) {
+            println("Error: Incompatible dimensions for dot product")
+            return nil
+        }
+
+        this.data = newData
+        this.shape = [this.shape[0], otherTensor.getShape()[1]]
+
+        return this
+    }
+
+    func sum() -> Int {
+        return __tensor_sum(this.data)
+    }
+
+    func mean() -> Int{
+        return __tensor_mean(this.data)
+    }
+
+    func flatten(){
+        this.shape = [this.data.length()]
+        return this
+    }
+
+    func add(value) {
+        this.data = __tensor_add(this.data, value);
+        return this;
+    }
+
+    func reshape(newShape){
+        let isValid = __tensor_shape(this.data,newShape)
+        
+        if (isValid == 1) {
+            this.shape = newShape
+            return this
+        }
+        
+        return nil
+    }
+
+    func save(path : String) {
+        return __save_jml(path,this.data,this.shape)
+    }
+
+    func load(path) {
+        let content = __load_jml(path)
+        if (content != nil) {
+            this.shape = content[0]
+            this.data = content[1]
+            return 1
+        }
+        return 0
+    }
+    
+
+    func sub(value) {
+        this.data = __tensor_sub(this.data, value);
+        return this;
+    }
+
+    func mul(value) {
+        this.data = __tensor_mul(this.data, value);
+        return this;
+    }
+
+    func getShape(){
+        return this.shape
+    }
+
+    func exports() {
+        return this.data;
+    }
+}
