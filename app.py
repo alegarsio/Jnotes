@@ -38,6 +38,27 @@ def list_files():
     files = [f for f in os.listdir(NOTEBOOK_DIR) if f.endswith('.jackal') or f.endswith('.csv')]
     return jsonify(files)
 
+@app.route('/create_folder', methods=['POST'])
+def create_folder():
+    data = request.json
+    folder_name = data.get('folder_name')
+    path = os.path.join(NOTEBOOK_DIR, folder_name)
+    if not os.path.exists(path):
+        os.makedirs(path)
+        return jsonify({"status": "success"})
+    return jsonify({"status": "error", "message": "Folder already exists"}), 400
+
+@app.route('/list_files', methods=['GET'])
+def list_files():
+    items = []
+    for f in os.listdir(NOTEBOOK_DIR):
+        full_path = os.path.join(NOTEBOOK_DIR, f)
+        if os.path.isdir(full_path):
+            items.append({"name": f, "type": "folder"})
+        elif f.endswith('.jackal') or f.endswith('.csv'):
+            items.append({"name": f, "type": "file"})
+    return jsonify(items)
+
 @app.route('/save_file', methods=['POST'])
 def save_file():
     data = request.json
