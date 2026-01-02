@@ -12,7 +12,7 @@ const leftSide = document.getElementById('editor-container');
 const workspace = document.getElementById('workspace');
 
 let isResizing = false;
-
+let currentPath = "";
 let myChart = null;
 let autosaveTimer;
 let currentRawData = [];
@@ -125,15 +125,16 @@ function closeGithubModal() {
 }
 
 function newFolder() {
-    const folderName = prompt("Masukkan nama folder:");
+    const folderName = prompt("Masukkan nama folder baru:");
     if (!folderName) return;
+
+    const fullFolderPath = currentPath === "" ? folderName : `${currentPath}/${folderName}`;
 
     fetch('/create_folder', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ folder_name: folderName })
-    })
-    .then(res => res.ok ? refreshFileList() : showToast("Gagal membuat folder", "error"));
+        body: JSON.stringify({ folder_name: fullFolderPath })
+    }).then(res => res.ok && refreshFileList());
 }
 
 async function syncWithGithub() {
@@ -277,37 +278,61 @@ async function initApp() {
     }
 }
 async function refreshFileList() {
-    const res = await fetch('/list_files');
+    const res = await fetch(`/list_files?path=${currentPath}`);
     if (!res.ok) return;
     const items = await res.json();
     const list = document.getElementById('file-list');
     list.innerHTML = '';
-    
+
     items.forEach(item => {
         const li = document.createElement('li');
-        let iconClass, iconColor;
+        li.setAttribute('draggable', item.type === 'file' ? 'true' : 'false'); // Hanya file yang bisa ditarik
+        
+        li.ondragstart = (e) => {
+            e.dataTransfer.setData("sourcePath", currentPath === "" ? item.name : `${currentPath}/${item.name}`);
+        };
 
         if (item.type === 'folder') {
-            iconClass = 'fa-folder';
-            iconColor = '#ffcc00';
-        } else {
-            const isCsv = item.name.endsWith('.csv');
-            iconClass = isCsv ? 'fa-table-cells' : 'fa-code';
-            iconColor = isCsv ? '#28a745' : '#0071e3';
-        }
+            li.ondragover = (e) => e.preventDefault(); 
+            li.ondrop = async (e) => {
+                e.preventDefault();
+                const sourcePath = e.dataTransfer.getData("sourcePath");
+                const destFolder = currentPath === "" ? item.name : `${currentPath}/${item.name}`;
+                
+                const moveRes = await fetch('/move_item', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ source: sourcePath, destination: destFolder })
+                });
 
-        li.innerHTML = `
-            <i class="fa-solid ${iconClass}" style="color: ${iconColor}; font-size: 14px; width: 18px;"></i> 
-            <span>${item.name}</span>
-        `;
-        
-        if (item.type === 'file') {
-            li.onclick = () => {
-                currentActiveFile = item.name;
-                loadFileToPane(item.name, 'top');
+                if (moveRes.ok) {
+                    showToast("File dipindahkan", "success");
+                    refreshFileList();
+                }
             };
         }
+
+        const isCsv = item.name.endsWith('.csv');
+        const iconClass = item.type === 'folder' ? 'fa-folder' : (isCsv ? 'fa-table-cells' : 'fa-code');
+        const iconColor = item.type === 'folder' ? '#ffcc00' : (isCsv ? '#28a745' : '#0071e3');
+
+        li.innerHTML = `
+            <div class="file-info">
+                <i class="fa-solid ${iconClass}" style="color: ${iconColor};"></i>
+                <span>${item.name}</span>
+            </div>
+        `;
         
+        li.onclick = () => {
+            if (item.type === 'folder') {
+                currentPath = currentPath === "" ? item.name : `${currentPath}/${item.name}`;
+                refreshFileList();
+            } else {
+                const fullPath = currentPath === "" ? item.name : `${currentPath}/${item.name}`;
+                loadFileToPane(fullPath, 'top');
+            }
+        };
+
         list.appendChild(li);
     });
 }
@@ -736,29 +761,28 @@ function renderChart(chartData) {
 
     myChart.setOption(option, true);
 }
-function newFile() { 
-    const fileName = prompt("Masukkan nama file (contoh: data.csv atau script.jackal):");
+function newFile() {
+    const fileName = prompt("Masukkan nama file:");
     if (!fileName) return;
 
     let finalName = fileName.trim();
-    if (!finalName.includes('.')) {
-        finalName += '.jackal';
-    }
+    if (!finalName.includes('.')) finalName += '.jackal';
+    
+    const fullPath = currentPath === "" ? finalName : `${currentPath}/${finalName}`;
 
-    activeFile['top'] = finalName;
-    currentActiveFile = finalName;
-    filenameInput.value = finalName;
+    activeFile['top'] = fullPath;
+    currentActiveFile = fullPath;
+    filenameInput.value = fullPath;
     
     const editorElem = document.getElementById('code-editor-top');
     if (editorElem) editorElem.value = '';
 
-    if (!openFiles['top'].includes(finalName)) {
-        openFiles['top'].push(finalName);
+    if (!openFiles['top'].includes(fullPath)) {
+        openFiles['top'].push(fullPath);
     }
 
     renderTabs('top');
     saveFile(false, 'top');
-    showToast(`File "${finalName}" berhasil dibuat`, "success");
 }
 function toggleSidebar() {
     const sidebar = document.getElementById('sidebar');

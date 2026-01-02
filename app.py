@@ -3,6 +3,7 @@ import subprocess
 from flask import Flask, request, jsonify, render_template
 import google.generativeai as genai
 from dotenv import load_dotenv
+import shutil
 
 load_dotenv()
 
@@ -33,6 +34,22 @@ def index():
 def visual_builder():
     return render_template('visual.html')
 
+@app.route('/move_item', methods=['POST'])
+def move_item():
+    data = request.json
+    source = data.get('source') 
+    destination_folder = data.get('destination') 
+    
+
+    old_path = os.path.join(NOTEBOOK_DIR, source)
+    new_path = os.path.join(NOTEBOOK_DIR, destination_folder, os.path.basename(source))
+    
+    try:
+        shutil.move(old_path, new_path)
+        return jsonify({"status": "success"})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+    
 @app.route('/list_files', methods=['GET'])
 def list_files():
     sub_path = request.args.get('path', '')

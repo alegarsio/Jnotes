@@ -142,6 +142,19 @@ body {
     padding-left: 16px;
 }
 
+#file-list li[draggable="true"] {
+    cursor: grab;
+}
+
+#file-list li[draggable="true"]:active {
+    cursor: grabbing;
+}
+
+#file-list li.drag-over {
+    background: rgba(0, 113, 227, 0.1);
+    border: 1px dashed var(--accent);
+}
+
 .active-file { 
     background: #ffffff !important; 
     color: var(--accent) !important; 
