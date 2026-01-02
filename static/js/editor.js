@@ -234,6 +234,27 @@ function deleteFilePrompt() {
     }, true);
 }
 
+/***
+ * The set of helper function to file
+ */
+function enterFolder(name) {
+    currentPath = currentPath === "" ? name : `${currentPath}/${name}`;
+    refreshFileList();
+}
+
+function openFile(path) {
+    currentActiveFile = path;
+    loadFileToPane(path, 'top');
+}
+
+async function moveItem(source, dest) {
+    const res = await fetch('/move_item', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ source: source, destination: dest })
+    });
+    if (res.ok) refreshFileList();
+}
 async function executeDelete() {
     const res = await fetch('/delete_file', {
         method: 'POST',
@@ -284,31 +305,35 @@ async function refreshFileList() {
     const list = document.getElementById('file-list');
     list.innerHTML = '';
 
+    if (currentPath !== "") {
+        const backLi = document.createElement('li');
+        backLi.className = "back-item";
+        backLi.innerHTML = `<i class="fa-solid fa-arrow-left"></i>`;
+        backLi.onclick = () => {
+            const parts = currentPath.split('/');
+            parts.pop();
+            currentPath = parts.join('/');
+            refreshFileList();
+        };
+        list.appendChild(backLi);
+    }
+
     items.forEach(item => {
         const li = document.createElement('li');
-        li.setAttribute('draggable', item.type === 'file' ? 'true' : 'false'); // Hanya file yang bisa ditarik
+        const fullPath = currentPath === "" ? item.name : `${currentPath}/${item.name}`;
         
-        li.ondragstart = (e) => {
-            e.dataTransfer.setData("sourcePath", currentPath === "" ? item.name : `${currentPath}/${item.name}`);
-        };
+        // Atur Drag and Drop
+        li.setAttribute('draggable', item.type === 'file' ? 'true' : 'false');
+        li.ondragstart = (e) => e.dataTransfer.setData("sourcePath", fullPath);
 
         if (item.type === 'folder') {
-            li.ondragover = (e) => e.preventDefault(); 
+            li.ondragover = (e) => { e.preventDefault(); li.classList.add('drag-over'); };
+            li.ondragleave = () => li.classList.remove('drag-over');
             li.ondrop = async (e) => {
                 e.preventDefault();
-                const sourcePath = e.dataTransfer.getData("sourcePath");
-                const destFolder = currentPath === "" ? item.name : `${currentPath}/${item.name}`;
-                
-                const moveRes = await fetch('/move_item', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ source: sourcePath, destination: destFolder })
-                });
-
-                if (moveRes.ok) {
-                    showToast("File dipindahkan", "success");
-                    refreshFileList();
-                }
+                li.classList.remove('drag-over');
+                const source = e.dataTransfer.getData("sourcePath");
+                moveItem(source, fullPath); // Fungsi moveItem dikirim ke server
             };
         }
 
@@ -317,22 +342,15 @@ async function refreshFileList() {
         const iconColor = item.type === 'folder' ? '#ffcc00' : (isCsv ? '#28a745' : '#0071e3');
 
         li.innerHTML = `
-            <div class="file-info">
+            <div class="file-item-main" onclick="${item.type === 'folder' ? `enterFolder('${item.name}')` : `openFile('${fullPath}')`}">
                 <i class="fa-solid ${iconClass}" style="color: ${iconColor};"></i>
-                <span>${item.name}</span>
+                <span class="file-name">${item.name}</span>
+            </div>
+            <div class="file-item-ops">
+                <button onclick="renameFilePrompt('${fullPath}')" title="Rename"><i class="fa-solid fa-pen"></i></button>
+                <button onclick="deleteFilePrompt('${fullPath}')" title="Delete"><i class="fa-solid fa-trash"></i></button>
             </div>
         `;
-        
-        li.onclick = () => {
-            if (item.type === 'folder') {
-                currentPath = currentPath === "" ? item.name : `${currentPath}/${item.name}`;
-                refreshFileList();
-            } else {
-                const fullPath = currentPath === "" ? item.name : `${currentPath}/${item.name}`;
-                loadFileToPane(fullPath, 'top');
-            }
-        };
-
         list.appendChild(li);
     });
 }
