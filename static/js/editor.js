@@ -123,6 +123,19 @@ function showGithubModal() {
 function closeGithubModal() {
     document.getElementById('github-modal').style.display = 'none';
 }
+
+function newFolder() {
+    const folderName = prompt("Masukkan nama folder:");
+    if (!folderName) return;
+
+    fetch('/create_folder', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ folder_name: folderName })
+    })
+    .then(res => res.ok ? refreshFileList() : showToast("Gagal membuat folder", "error"));
+}
+
 async function syncWithGithub() {
     const repo = document.getElementById('gh-repo').value;
     const token = document.getElementById('gh-token').value;
@@ -266,30 +279,39 @@ async function initApp() {
 async function refreshFileList() {
     const res = await fetch('/list_files');
     if (!res.ok) return;
-    const files = await res.json();
+    const items = await res.json();
     const list = document.getElementById('file-list');
     list.innerHTML = '';
     
-    files.forEach(file => {
+    items.forEach(item => {
         const li = document.createElement('li');
-        
-        const isCsv = file.endsWith('.csv');
-        const iconClass = isCsv ? 'fa-table-cells' : 'fa-code';
-        const iconColor = isCsv ? '#28a745' : '#0071e3';
+        let iconClass, iconColor;
+
+        if (item.type === 'folder') {
+            iconClass = 'fa-folder';
+            iconColor = '#ffcc00';
+        } else {
+            const isCsv = item.name.endsWith('.csv');
+            iconClass = isCsv ? 'fa-table-cells' : 'fa-code';
+            iconColor = isCsv ? '#28a745' : '#0071e3';
+        }
 
         li.innerHTML = `
             <i class="fa-solid ${iconClass}" style="color: ${iconColor}; font-size: 14px; width: 18px;"></i> 
-            <span>${file}</span>
+            <span>${item.name}</span>
         `;
         
-        li.onclick = () => {
-            currentActiveFile = file;
-            loadFileToPane(file, 'top');
-        };
+        if (item.type === 'file') {
+            li.onclick = () => {
+                currentActiveFile = item.name;
+                loadFileToPane(item.name, 'top');
+            };
+        }
         
         list.appendChild(li);
     });
 }
+
 async function loadFileToPane(filename, pane) {
     const res = await fetch(`/load_file/${filename}`);
     if (!res.ok) return;
