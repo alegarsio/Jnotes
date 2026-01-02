@@ -35,7 +35,7 @@ def visual_builder():
 
 @app.route('/list_files', methods=['GET'])
 def list_files():
-    files = [f for f in os.listdir(NOTEBOOK_DIR) if f.endswith('.jackal')]
+    files = [f for f in os.listdir(NOTEBOOK_DIR) if f.endswith('.jackal') or f.endswith('.csv')]
     return jsonify(files)
 
 @app.route('/save_file', methods=['POST'])
