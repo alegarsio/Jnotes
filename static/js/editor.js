@@ -272,7 +272,15 @@ async function refreshFileList() {
     
     files.forEach(file => {
         const li = document.createElement('li');
-        li.innerHTML = `<img src="/static/icon.png" class="file-icon"> <span>${file}</span>`;
+        
+        const isCsv = file.endsWith('.csv');
+        const iconClass = isCsv ? 'fa-table-cells' : 'fa-code';
+        const iconColor = isCsv ? '#28a745' : '#0071e3';
+
+        li.innerHTML = `
+            <i class="fa-solid ${iconClass}" style="color: ${iconColor}; font-size: 14px; width: 18px;"></i> 
+            <span>${file}</span>
+        `;
         
         li.onclick = () => {
             currentActiveFile = file;
