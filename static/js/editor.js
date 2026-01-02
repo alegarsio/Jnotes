@@ -62,6 +62,22 @@ document.addEventListener('mouseup', () => {
 });
 
 
+function updateQuickStats(data) {
+    const flatData = data.flat().filter(n => typeof n === 'number');
+    
+    if (flatData.length === 0) return;
+
+    const sum = flatData.reduce((a, b) => a + b, 0);
+    const avg = sum / flatData.length;
+    const max = Math.max(...flatData);
+    const min = Math.min(...flatData);
+
+    document.getElementById('stat-avg').innerText = avg.toFixed(5);
+    document.getElementById('stat-max').innerText = max.toFixed(5);
+    document.getElementById('stat-min').innerText = min.toFixed(5);
+    document.getElementById('stat-sum').innerText = sum.toFixed(5);
+}
+
 function loadLayoutSettings() {
     const isSidebarClosed = localStorage.getItem('sidebar_closed') === 'true';
     const isConsoleClosed = localStorage.getItem('console_closed') === 'true';
@@ -689,13 +705,19 @@ function renderChart(chartData) {
             data: flatPieData.map((val, i) => ({ value: val, name: `Data ${i}` }))
         });
     } else if (type === 'scatter') {
-        const scatterData = (isMultiSeries && processedData.length >= 2) 
-            ? processedData[0].map((val, i) => [val, processedData[1][i] || 0])
-            : processedData.flat(Infinity).map((val, i) => [i, val]);
+        let scatterData = [];
+        if (isMultiSeries && processedData.length >= 2) {
+            scatterData = processedData[0].map((val, i) => [
+                val, 
+                processedData[1][i] !== undefined ? processedData[1][i] : 0
+            ]);
+        } else {
+            scatterData = processedData.flat(Infinity).map((val, i) => [i, val]);
+        }
         
         series.push({
             type: 'scatter',
-            symbolSize: 15,
+            symbolSize: 12,
             data: scatterData,
             itemStyle: {
                 color: colors[0],
@@ -736,18 +758,18 @@ function renderChart(chartData) {
             shadowBlur: 20,
             shadowColor: 'rgba(0,0,0,0.1)',
             textStyle: { color: '#1d1d1f', fontSize: 12 },
-            axisPointer: { type: 'cross', label: { backgroundColor: '#0071e3' } }
+            axisPointer: { type: 'cross', label: { backgroundColor: '#0071e3' } },
+            valueFormatter: (value) => value.toString()
         },
         toolbox: {
             show: true,
             right: 25,
             top: 10,
             feature: {
-                dataZoom: { yAxisIndex: 'none', title: { zoom: 'Zoom Area', back: 'Reset' } },
-                dataView: { readOnly: false, title: 'View Data' },
-                magicType: { type: ['line', 'bar'], title: { line: 'To Line', bar: 'To Bar' } },
-                restore: { title: 'Restore' },
-                saveAsImage: { title: 'Export PNG', pixelRatio: 2 }
+                dataZoom: { yAxisIndex: 'none', title: { zoom: 'Zoom' } },
+                dataView: { readOnly: false, title: 'Data' },
+                restore: { title: 'Reset' },
+                saveAsImage: { title: 'PNG' }
             }
         },
         dataZoom: type === 'pie' ? [] : [
@@ -756,24 +778,26 @@ function renderChart(chartData) {
                 type: 'slider', 
                 bottom: 15, 
                 height: 20,
-                handleIcon: 'path://M10.7,11.9v-1.3H9.3v1.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4v1.3h1.3v-1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7V23h6.6V24.4z M13.3,19.6H6.7v-1.4h6.6V19.6z',
-                handleSize: '80%',
-                handleStyle: { color: '#fff', shadowBlur: 3, shadowColor: 'rgba(0, 0, 0, 0.6)', shadowOffsetX: 2, shadowOffsetY: 2 }
+                handleSize: '80%'
             }
         ],
         grid: { top: '18%', left: '5%', right: '8%', bottom: '15%', containLabel: true },
         xAxis: type === 'pie' ? { show: false } : { 
-            type: type === 'scatter' ? 'value' : 'category', 
-            data: type === 'scatter' ? null : xAxisData,
+            type: (type === 'scatter') ? 'value' : 'category', 
+            data: (type === 'scatter') ? null : xAxisData,
+            scale: true,
             axisLine: { lineStyle: { color: '#d2d2d7' } },
-            splitLine: { show: false }
+            splitLine: { show: true, lineStyle: { type: 'dashed', opacity: 0.1 } }
         },
         yAxis: type === 'pie' ? { show: false } : { 
             type: 'value', 
             scale: true,
-            splitLine: { lineStyle: { type: 'dashed', color: '#f5f5f7' } }
+            splitLine: { lineStyle: { type: 'dashed', color: '#f5f5f7' } },
+            axisLabel: {
+                formatter: (value) => value.toFixed(5)
+            }
         },
-        legend: { show: series.length > 1 || type === 'pie', top: 15, left: 'center', textStyle: { color: '#86868b' } },
+        legend: { show: series.length > 1 || type === 'pie', top: 15, left: 'center' },
         series: series
     };
 

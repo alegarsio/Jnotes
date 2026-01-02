@@ -1,6 +1,8 @@
 import jklearn.supervised.Knn
 import jklearn.supervised.Regression.LogisticRegression
 import jklearn.supervised.NaiveBayes
+import jklearn.supervised.Regression.LinearRegression
+import jklearn.Numeric.Matrix.ConfussionMatrix
 
 class Regression extends LogisticRegression {}
 class Linear extends LinearRegression {}

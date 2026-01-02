@@ -1,9 +1,5 @@
-import jklearn.Tensor
+import jklearn.basic 
+import jklearn.supervised
 
-let v1 = Vector<Float>([3.0, 4.0, 0.0], [3])
-        .add(2.0)
-        .sub(1.0)
-        .magnitude()
-
-println(v1)
-
+let data = Csv("notebooks/data/data.csv").load()
+println(data)
