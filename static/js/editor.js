@@ -301,7 +301,20 @@ async function loadFileToPane(filename, pane) {
         localStorage.setItem('lastOpenedFile', filename);
         renderTabs(pane);
         updateLineNumbers(pane);
+
+        if (filename.endsWith('.csv')) {
+            parseCSVToTable(data.content);
+        }
     }
+}
+
+function parseCSVToTable(csvText) {
+    const lines = csvText.split('\n').filter(line => line.trim() !== '');
+    const data = lines.map(line => {
+        const values = line.split(',');
+        return values.map(v => isNaN(v) ? v : parseFloat(v));
+    });
+    renderTable(data); 
 }
 function renderTabs(pane) {
 
@@ -440,7 +453,6 @@ async function saveFile(isAutosave = false, pane = 'top') {
         if (res.ok) {
             localStorage.setItem('lastOpenedFile', filename);
             if (saveStatus) saveStatus.innerText = "All changes saved";
-            
             if (!isAutosave) {
                 consoleBox.innerText = `[System] Saved ${filename}`;
                 refreshFileList(); 
@@ -695,32 +707,28 @@ function renderChart(chartData) {
     myChart.setOption(option, true);
 }
 function newFile() { 
-    const pane = 'top';
-    const fileName = prompt("Enter the new file name:");
-    
-    if (!fileName) {
-        showToast("Failed to create a file", "info");
-        return;
+    const fileName = prompt("Masukkan nama file (contoh: data.csv atau script.jackal):");
+    if (!fileName) return;
+
+    let finalName = fileName.trim();
+    if (!finalName.includes('.')) {
+        finalName += '.jackal';
     }
 
-    const finalName = fileName.endsWith('.jackal') ? fileName : fileName + '.jackal';
-    const editorElem = document.getElementById(`code-editor-${pane}`);
-    
-    if (editorElem) editorElem.value = ''; 
-    filenameInput.value = finalName;
-    activeFile[pane] = finalName;
+    activeFile['top'] = finalName;
     currentActiveFile = finalName;
+    filenameInput.value = finalName;
+    
+    const editorElem = document.getElementById('code-editor-top');
+    if (editorElem) editorElem.value = '';
 
-    if (!openFiles[pane].includes(finalName)) {
-        openFiles[pane].push(finalName);
+    if (!openFiles['top'].includes(finalName)) {
+        openFiles['top'].push(finalName);
     }
 
-    localStorage.setItem('lastOpenedFile', finalName);
-    updateLineNumbers(pane);
-    renderTabs(pane);
-    
-    saveFile(false, pane);
-    showToast(`File "${finalName}" created`, "success");
+    renderTabs('top');
+    saveFile(false, 'top');
+    showToast(`File "${finalName}" berhasil dibuat`, "success");
 }
 function toggleSidebar() {
     const sidebar = document.getElementById('sidebar');

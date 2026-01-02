@@ -42,7 +42,6 @@ def list_files():
 def save_file():
     data = request.json
     filename = data.get('filename', 'untitled.jackal')
-    if not filename.endswith('.jackal'): filename += '.jackal'
     path = os.path.join(NOTEBOOK_DIR, filename)
     with open(path, 'w') as f:
         f.write(data.get('content', ''))
