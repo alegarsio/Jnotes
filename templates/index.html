@@ -15,17 +15,17 @@
 
 <body>
 
-    <aside id="sidebar">
-        <div class="side-header">
-            <span>Project Files</span>
-            <button class="btn-new" onclick="newFile()">+</button>
+<aside id="sidebar">
+    <div class="side-header">
+        <span>Project Files</span>
+        <div style="display: flex; gap: 4px;">
+            <button class="btn-new" onclick="newFolder()" title="New Folder">
+                <i class="fa-solid fa-folder-plus"></i>
+            </button>
+            <button class="btn-new" onclick="newFile()" title="New File">+</button>
         </div>
-        <ul id="file-list"></ul>
-
-        <div id="file-ops">
-            <button onclick="renameFilePrompt()" class="btn-minimal">Rename</button>
-            <button onclick="deleteFilePrompt()" class="btn-minimal">Delete</button>
-        </div>
+    </div>
+    <ul id="file-list"></ul>
     </aside>
 
 

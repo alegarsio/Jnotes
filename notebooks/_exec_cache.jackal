@@ -1,9 +1,17 @@
-import jklearn.Tensor
-
-let v1 = Vector<Float>([3.0, 4.0, 0.0], [3])
-        .add(2.0)
-        .sub(1.0)
-        .magnitude()
-
-println(v1)
-
+ let data = [
+            [11,10,50],
+            [12,20,60],
+            [13,30,70],
+            [14,40,80]
+ ]
+ 
+ let labels = [ 1 , 0, 1 , 0 ]
+ 
+ let nowData = [ [ 11,12 ,52 ] , [ 12 , 25 , 62 ], [13,32,72 ]] 
+ 
+ let result = Array(nowData)
+              . classify(data,labels,1)
+              . collect()
+              
+         
+println(result)

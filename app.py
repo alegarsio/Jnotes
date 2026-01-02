@@ -35,8 +35,14 @@ def visual_builder():
 
 @app.route('/list_files', methods=['GET'])
 def list_files():
-    files = [f for f in os.listdir(NOTEBOOK_DIR) if f.endswith('.jackal') or f.endswith('.csv')]
-    return jsonify(files)
+    items = []
+    for f in os.listdir(NOTEBOOK_DIR):
+        full_path = os.path.join(NOTEBOOK_DIR, f)
+        if os.path.isdir(full_path):
+            items.append({"name": f, "type": "folder"})
+        elif f.endswith('.jackal') or f.endswith('.csv'):
+            items.append({"name": f, "type": "file"})
+    return jsonify(items)
 
 @app.route('/create_folder', methods=['POST'])
 def create_folder():
@@ -48,28 +54,6 @@ def create_folder():
         return jsonify({"status": "success"})
     return jsonify({"status": "error", "message": "Folder already exists"}), 400
 
-@app.route('/list_files', methods=['GET'])
-def list_files():
-    items = []
-    for f in os.listdir(NOTEBOOK_DIR):
-        full_path = os.path.join(NOTEBOOK_DIR, f)
-        if os.path.isdir(full_path):
-            items.append({"name": f, "type": "folder"})
-        elif f.endswith('.jackal') or f.endswith('.csv'):
-            items.append({"name": f, "type": "file"})
-    return jsonify(items)
-
-
-@app.route('/list_files', methods=['GET'])
-def list_files():
-    items = []
-    for f in os.listdir(NOTEBOOK_DIR):
-        full_path = os.path.join(NOTEBOOK_DIR, f)
-        if os.path.isdir(full_path):
-            items.append({"name": f, "type": "folder"})
-        elif f.endswith('.jackal') or f.endswith('.csv'):
-            items.append({"name": f, "type": "file"})
-    return jsonify(items)
 
 @app.route('/save_file', methods=['POST'])
 def save_file():
